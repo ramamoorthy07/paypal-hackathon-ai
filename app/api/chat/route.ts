@@ -7,7 +7,9 @@ import { chatStreamErrorMessage } from "@/lib/agent/stream-error";
 import { agentTools } from "@/lib/agent/tools";
 import { denyIfAbusive } from "@/lib/access/abuse";
 import { getEnv } from "@/lib/env";
+import { getInrUsdQuote } from "@/lib/fx/quote";
 import { languageModel } from "@/lib/llm/provider";
+import { paypalReadOnlyAgentTools } from "@/lib/paypal/read-tools";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -47,15 +49,21 @@ export async function POST(req: Request): Promise<Response> {
   }
 
   const messages = await convertToModelMessages(toUiMessages(parsed.data.messages));
+  const fx = await getInrUsdQuote();
 
   const result = streamText({
     model: languageModel(env),
     system: agentSystemPrompt({
       maxInvoiceUsd: env.MAX_INVOICE_USD,
-      inrUsdRate: env.INR_USD_RATE,
+      inrUsdRate: fx.usdPerInr,
+      fxSource: fx.source,
+      fxAsOfDate: fx.asOfDate,
     }),
     messages,
-    tools: agentTools,
+    tools: {
+      ...agentTools,
+      ...(paypalReadOnlyAgentTools() as typeof agentTools),
+    },
     stopWhen: stepCountIs(5),
     onError: ({ error }) => {
       console.error("chat stream error", error instanceof Error ? error.message : error);
