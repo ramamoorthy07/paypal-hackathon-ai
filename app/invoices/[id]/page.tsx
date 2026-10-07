@@ -1,8 +1,10 @@
 import { notFound } from "next/navigation";
 import { AppHeader } from "@/components/app-header";
 import { InvoiceQr } from "@/components/invoice-qr";
+import { InvoiceRemind } from "@/components/invoice-remind";
 import { InvoiceStatusSync } from "@/components/invoice-status-sync";
 import { StatusBadge } from "@/components/status-badge";
+import { listRemindersForInvoice } from "@/lib/db/repositories/reminders";
 import { getInvoiceView } from "@/lib/invoices/views";
 import { centsToAmountString, isoDateFromMs } from "@/lib/money";
 
@@ -18,6 +20,13 @@ export default async function InvoiceDetailPage({
   if (!invoice) {
     notFound();
   }
+  const reminders = await listRemindersForInvoice(id);
+  const canRemind = invoice.displayStatus === "OVERDUE" && Boolean(invoice.paypalInvoiceId);
+  const remindDisabledReason = canRemind
+    ? null
+    : invoice.displayStatus !== "OVERDUE"
+      ? "Reminders are only sent after the due date (local OVERDUE)."
+      : "Local overdue invoice — PayPal is not contacted until this invoice is confirmed and sent.";
 
   const inr =
     invoice.originalCurrency === "INR" && invoice.originalAmountCents != null
@@ -117,6 +126,13 @@ export default async function InvoiceDetailPage({
             ) : null}
           </div>
         </section>
+
+        <InvoiceRemind
+          invoiceId={invoice.id}
+          canRemind={canRemind}
+          disabledReason={remindDisabledReason}
+          reminders={reminders}
+        />
       </main>
     </div>
   );

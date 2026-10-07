@@ -152,6 +152,7 @@ export async function getInvoice(paypalInvoiceId: string): Promise<PaypalInvoice
 export async function remindInvoice(input: {
   paypalInvoiceId: string;
   localInvoiceId: string;
+  reminderId: string;
   subject?: string;
   note?: string;
 }): Promise<void> {
@@ -160,7 +161,7 @@ export async function remindInvoice(input: {
     z.unknown().optional(),
     {
       method: "POST",
-      idempotencyKey: idempotencyKey(input.localInvoiceId, "remind"),
+      idempotencyKey: idempotencyKey(input.localInvoiceId, `remind:${input.reminderId}`),
       body: JSON.stringify({
         subject: input.subject ? clip(input.subject, 4000) : undefined,
         note: input.note ? clip(input.note, 4000) : undefined,

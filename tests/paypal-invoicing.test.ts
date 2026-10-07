@@ -1,7 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { resetEnvCache } from "@/lib/env";
 import { resetPaypalTokenCache } from "@/lib/paypal/client";
-import { createDraftInvoice, invoiceIdFromHref, sendInvoiceAsShareLink } from "@/lib/paypal/invoicing";
+import {
+  createDraftInvoice,
+  invoiceIdFromHref,
+  remindInvoice,
+  sendInvoiceAsShareLink,
+} from "@/lib/paypal/invoicing";
 import { idempotencyKey } from "@/lib/paypal/errors";
 
 function jsonResponse(body: unknown, status = 200): Response {
@@ -144,5 +149,34 @@ describe("PayPal invoicing REST", () => {
     const getCall = fetchMock.mock.calls[2];
     expect(getCall).toBeDefined();
     expect(String((getCall as [string, RequestInit])[0])).toContain("/v2/invoicing/invoices/INV2-LOC");
+  });
+
+  it("reminds with send_to_recipient true and a unique request id", async () => {
+    fetchMock
+      .mockResolvedValueOnce(
+        jsonResponse({ access_token: "token-1", token_type: "Bearer", expires_in: 32400 }),
+      )
+      .mockResolvedValueOnce(new Response(null, { status: 204 }));
+
+    await remindInvoice({
+      paypalInvoiceId: "INV2-TEST",
+      localInvoiceId: "inv_abc",
+      reminderId: "rem-1",
+      subject: "Friendly reminder",
+      note: "Please pay when you can.",
+    });
+
+    const remindCall = fetchMock.mock.calls[1];
+    expect(remindCall).toBeDefined();
+    const [url, init] = remindCall as [string, RequestInit];
+    expect(String(url)).toContain("/v2/invoicing/invoices/INV2-TEST/remind");
+    const headers = new Headers(init.headers);
+    expect(headers.get("PayPal-Request-Id")).toBe(idempotencyKey("inv_abc", "remind:rem-1"));
+    expect(JSON.parse(String(init.body))).toEqual({
+      subject: "Friendly reminder",
+      note: "Please pay when you can.",
+      send_to_invoicer: false,
+      send_to_recipient: true,
+    });
   });
 });

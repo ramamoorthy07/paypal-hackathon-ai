@@ -1,4 +1,4 @@
-import { and, count, eq, gte } from "drizzle-orm";
+import { and, count, desc, eq, gte } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { reminders, type ReminderRow } from "@/lib/db/schema";
 
@@ -23,7 +23,12 @@ export async function insertReminder(input: NewReminder): Promise<ReminderRow> {
 }
 
 export async function listRemindersForInvoice(invoiceId: string): Promise<ReminderRow[]> {
-  return getDb().select().from(reminders).where(eq(reminders.invoiceId, invoiceId)).all();
+  return getDb()
+    .select()
+    .from(reminders)
+    .where(eq(reminders.invoiceId, invoiceId))
+    .orderBy(desc(reminders.sentAt))
+    .all();
 }
 
 export async function countRemindersSince(invoiceId: string, sinceMs: number): Promise<number> {

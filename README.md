@@ -57,3 +57,5 @@ Use a **Sandbox Business** app for the merchant credentials. A **Sandbox Persona
 - `POST /api/webhooks/paypal` — verify-webhook-signature, then PAID/CANCELLED (idempotent)
 - `POST /api/invoices/[id]/sync` — fallback GET of the PayPal invoice when webhooks cannot reach localhost
 - `POST /api/summary/monthly` — AI briefing from local invoice totals (no PayPal call)
+- `POST /api/invoices/[id]/remind` — AI note + PayPal remind (overdue, PayPal-sent, max 2/UTC day)
+- `GET|POST /api/cron/reminders` — sweep overdue invoices; set `CRON_SECRET` in production

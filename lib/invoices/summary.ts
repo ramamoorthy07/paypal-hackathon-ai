@@ -3,6 +3,7 @@ import { getEnv } from "@/lib/env";
 import { earningsSnapshot, monthlySummaryPrompt, type EarningsSnapshot } from "@/lib/invoices/earnings";
 import { listInvoiceViews } from "@/lib/invoices/views";
 import { languageModel } from "@/lib/llm/provider";
+import { plainTextFromGenerateResult } from "@/lib/llm/plain-text";
 
 export type MonthlySummaryResult = {
   monthKey: string;
@@ -21,12 +22,7 @@ export async function generateMonthlySummary(now = Date.now()): Promise<MonthlyS
     maxOutputTokens: 4000,
   });
 
-  const text =
-    result.text.trim() ||
-    result.content
-      .flatMap((part) => (part.type === "text" && part.text ? [part.text] : []))
-      .join("\n")
-      .trim();
+  const text = plainTextFromGenerateResult(result);
 
   if (!text) {
     console.error("monthly summary empty", {
