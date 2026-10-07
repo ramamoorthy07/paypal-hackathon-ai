@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { pingDb } from "@/lib/db";
 import { getEnv } from "@/lib/env";
 import { PayPalError, pingPaypalInvoices } from "@/lib/paypal/client";
 
@@ -25,11 +26,19 @@ export async function GET(): Promise<NextResponse> {
     };
   }
 
-  const dbCheck: CheckResult = {
-    ok: false,
-    status: "not_wired",
-    message: "SQLite is not wired yet (step 2).",
-  };
+  let dbCheck: CheckResult;
+  try {
+    const ping = pingDb();
+    dbCheck = {
+      ok: true,
+      invoiceCount: ping.invoiceCount,
+    };
+  } catch (error) {
+    dbCheck = {
+      ok: false,
+      message: error instanceof Error ? error.message : "Database health check failed.",
+    };
+  }
 
   let paypalCheck: CheckResult;
   if (!envCheck.ok) {
@@ -60,7 +69,7 @@ export async function GET(): Promise<NextResponse> {
     }
   }
 
-  const ok = envCheck.ok && paypalCheck.ok;
+  const ok = envCheck.ok && dbCheck.ok && paypalCheck.ok;
   return NextResponse.json(
     {
       ok,

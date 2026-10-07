@@ -25,12 +25,21 @@ npm run dev
 curl -sS http://localhost:3000/api/health | python3 -m json.tool
 ```
 
-You want `"ok": true` and `checks.paypal.ok: true`. `checks.db` is `not_wired` until step 2.
+You want `"ok": true`, `checks.db.ok: true`, and `checks.paypal.ok: true`.
+
+Seed five local demo invoices (paid, sent, overdue, cancelled, draft). These are **not** created in PayPal:
+
+```bash
+npm run db:seed
+```
+
+`checks.db.invoiceCount` should be at least 5 after seeding. The SQLite file lives at `data/paypilot.db` and is gitignored.
 
 Use a **Sandbox Business** app for the merchant credentials. A **Sandbox Personal** account is the buyer for later invoice payments.
 
 ## What exists now
 
 - Env validation (`lib/env.ts`) — fails fast with missing-variable names, never logs secrets
-- `/api/health` — env + PayPal OAuth + list 1 invoice
+- `/api/health` — env + SQLite ping + PayPal OAuth + list 1 invoice
+- Drizzle schema, repositories, and `npm run db:seed`
 - Placeholder home page
