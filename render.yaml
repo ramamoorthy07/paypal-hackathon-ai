@@ -1,0 +1,59 @@
+services:
+  - type: web
+    name: paypilot
+    runtime: docker
+    plan: starter
+    healthCheckPath: /api/health/live
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm run start:web
+    disk:
+      name: paypilot-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: file:/var/data/paypilot.db
+      - key: SEED_ON_BOOT
+        value: "true"
+      - key: PAYPAL_MODE
+        value: sandbox
+      - key: MAX_INVOICE_USD
+        value: "5000"
+      - key: INR_USD_RATE
+        value: "0.012"
+      - key: AZURE_OPENAI_DEPLOYMENT
+        value: gpt-5-mini
+      - key: CRON_SECRET
+        generateValue: true
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: AZURE_OPENAI_ENDPOINT
+        sync: false
+      - key: PAYPAL_WEBHOOK_ID
+        sync: false
+
+  - type: cron
+    name: paypilot-reminders
+    runtime: node
+    schedule: "0 9,21 * * *"
+    buildCommand: "true"
+    startCommand: curl -fsS -X POST -H "Authorization: Bearer $CRON_SECRET" "https://$PAYPILOT_HOST/api/cron/reminders"
+    envVars:
+      - key: CRON_SECRET
+        fromService:
+          name: paypilot
+          type: web
+          envVarKey: CRON_SECRET
+      - key: PAYPILOT_HOST
+        fromService:
+          name: paypilot
+          type: web
+          property: host

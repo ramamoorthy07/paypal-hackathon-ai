@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import { pingDb } from "@/lib/db";
 import { getEnv } from "@/lib/env";
+import { pingLlm } from "@/lib/llm/ping";
 import { PayPalError, pingPaypalInvoices } from "@/lib/paypal/client";
 
 export const dynamic = "force-dynamic";
@@ -17,6 +19,7 @@ export async function GET(): Promise<NextResponse> {
       mode: env.PAYPAL_MODE,
       maxInvoiceUsd: env.MAX_INVOICE_USD,
       webhookConfigured: Boolean(env.PAYPAL_WEBHOOK_ID),
+      llm: env.AZURE_OPENAI_ENDPOINT ? "azure" : "openai",
     };
   } catch (error) {
     envCheck = {
@@ -25,11 +28,19 @@ export async function GET(): Promise<NextResponse> {
     };
   }
 
-  const dbCheck: CheckResult = {
-    ok: false,
-    status: "not_wired",
-    message: "SQLite is not wired yet (step 2).",
-  };
+  let dbCheck: CheckResult;
+  try {
+    const ping = await pingDb();
+    dbCheck = {
+      ok: true,
+      invoiceCount: ping.invoiceCount,
+    };
+  } catch (error) {
+    dbCheck = {
+      ok: false,
+      message: error instanceof Error ? error.message : "Database health check failed.",
+    };
+  }
 
   let paypalCheck: CheckResult;
   if (!envCheck.ok) {
@@ -60,7 +71,30 @@ export async function GET(): Promise<NextResponse> {
     }
   }
 
-  const ok = envCheck.ok && paypalCheck.ok;
+  let llmCheck: CheckResult;
+  if (!envCheck.ok) {
+    llmCheck = {
+      ok: false,
+      message: "Skipped LLM check because environment is invalid.",
+    };
+  } else {
+    try {
+      const ping = await pingLlm(getEnv());
+      llmCheck = {
+        ok: true,
+        provider: ping.provider,
+        deployment: ping.deployment,
+        modelCount: ping.modelCount ?? null,
+      };
+    } catch (error) {
+      llmCheck = {
+        ok: false,
+        message: error instanceof Error ? error.message : "LLM health check failed.",
+      };
+    }
+  }
+
+  const ok = envCheck.ok && dbCheck.ok && paypalCheck.ok && llmCheck.ok;
   return NextResponse.json(
     {
       ok,
@@ -68,6 +102,7 @@ export async function GET(): Promise<NextResponse> {
         env: envCheck,
         db: dbCheck,
         paypal: paypalCheck,
+        llm: llmCheck,
       },
     },
     { status: ok ? 200 : 503 },
