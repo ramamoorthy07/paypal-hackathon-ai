@@ -7,6 +7,12 @@ vi.mock("@/lib/paypal/invoicing", () => ({
   sendInvoiceAsShareLink: vi.fn(),
 }));
 
+vi.mock("@/lib/paypal/toolkit-write", () => ({
+  createDraftViaToolkit: vi.fn(),
+  sendInvoiceViaToolkit: vi.fn(),
+  toolkitCanCreateWithoutDueDate: (dueDateMs: number | null | undefined) => dueDateMs == null,
+}));
+
 vi.mock("@/lib/db/repositories/invoices", () => ({
   getInvoiceById: vi.fn(),
   updateInvoice: vi.fn(),
@@ -21,6 +27,7 @@ vi.mock("@/lib/db/repositories/audit-log", () => ({
 }));
 
 import { createDraftInvoice, sendInvoiceAsShareLink } from "@/lib/paypal/invoicing";
+import { createDraftViaToolkit, sendInvoiceViaToolkit } from "@/lib/paypal/toolkit-write";
 import { getInvoiceById, updateInvoice } from "@/lib/db/repositories/invoices";
 import { getClientById } from "@/lib/db/repositories/clients";
 import { insertAuditLog } from "@/lib/db/repositories/audit-log";
@@ -28,6 +35,8 @@ import { ConfirmError, confirmInvoice } from "@/lib/invoices/confirm";
 
 const createDraftInvoiceMock = vi.mocked(createDraftInvoice);
 const sendInvoiceAsShareLinkMock = vi.mocked(sendInvoiceAsShareLink);
+const createDraftViaToolkitMock = vi.mocked(createDraftViaToolkit);
+const sendInvoiceViaToolkitMock = vi.mocked(sendInvoiceViaToolkit);
 const getInvoiceByIdMock = vi.mocked(getInvoiceById);
 const updateInvoiceMock = vi.mocked(updateInvoice);
 const getClientByIdMock = vi.mocked(getClientById);
@@ -76,6 +85,8 @@ describe("confirmInvoice", () => {
     process.env.MAX_INVOICE_USD = "5000";
     resetEnvCache();
     vi.clearAllMocks();
+    createDraftViaToolkitMock.mockRejectedValue(new Error("toolkit create skipped in default tests"));
+    sendInvoiceViaToolkitMock.mockRejectedValue(new Error("toolkit send skipped in default tests"));
     getClientByIdMock.mockResolvedValue(client);
     updateInvoiceMock.mockImplementation(async (id, patch) => {
       const current = (await getInvoiceByIdMock(id)) ?? draft({ id });
@@ -184,6 +195,46 @@ describe("confirmInvoice", () => {
     getInvoiceByIdMock.mockResolvedValue(draft({ amountCents: 500_001 }));
     await expect(confirmInvoice("inv-1")).rejects.toMatchObject({ code: "over_limit", status: 422 });
     expect(sendInvoiceAsShareLinkMock).not.toHaveBeenCalled();
+  });
+
+  it("creates and sends through the Agent Toolkit after Confirm when there is no due date", async () => {
+    getInvoiceByIdMock.mockResolvedValue(draft());
+    createDraftViaToolkitMock.mockResolvedValue({ id: "INV2-TK", invoiceNumber: "PP-TK" });
+    sendInvoiceViaToolkitMock.mockResolvedValue({
+      hostedUrl: "https://www.sandbox.paypal.com/invoice/p/#INV2-TK",
+    });
+
+    const result = await confirmInvoice("inv-1");
+
+    expect(createDraftViaToolkitMock).toHaveBeenCalledOnce();
+    expect(sendInvoiceViaToolkitMock).toHaveBeenCalledWith({
+      paypalInvoiceId: "INV2-TK",
+      sendToRecipient: false,
+    });
+    expect(createDraftInvoiceMock).not.toHaveBeenCalled();
+    expect(sendInvoiceAsShareLinkMock).not.toHaveBeenCalled();
+    expect(result.paypalInvoiceId).toBe("INV2-TK");
+  });
+
+  it("uses REST create when a due date is set because the toolkit cannot set payment_term", async () => {
+    getInvoiceByIdMock.mockResolvedValue(draft({ dueDate: Date.parse("2026-11-01T00:00:00.000Z") }));
+    createDraftInvoiceMock.mockResolvedValue({
+      id: "INV2-DUE",
+      status: "DRAFT",
+      detail: { invoice_number: "PP-DUE" },
+    });
+    sendInvoiceViaToolkitMock.mockResolvedValue({
+      hostedUrl: "https://www.sandbox.paypal.com/invoice/p/#INV2-DUE",
+    });
+
+    await confirmInvoice("inv-1");
+
+    expect(createDraftViaToolkitMock).not.toHaveBeenCalled();
+    expect(createDraftInvoiceMock).toHaveBeenCalledOnce();
+    expect(sendInvoiceViaToolkitMock).toHaveBeenCalledWith({
+      paypalInvoiceId: "INV2-DUE",
+      sendToRecipient: false,
+    });
   });
 
   it("returns not_found when the invoice is missing", async () => {

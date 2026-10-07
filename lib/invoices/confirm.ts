@@ -6,6 +6,11 @@ import type { InvoiceRow, LineItem } from "@/lib/db/schema";
 import { getEnv } from "@/lib/env";
 import { InvoiceTransitionError, transition } from "@/lib/invoices/state";
 import { createDraftInvoice, sendInvoiceAsShareLink } from "@/lib/paypal/invoicing";
+import {
+  createDraftViaToolkit,
+  sendInvoiceViaToolkit,
+  toolkitCanCreateWithoutDueDate,
+} from "@/lib/paypal/toolkit-write";
 
 export class ConfirmError extends Error {
   readonly status: number;
@@ -66,6 +71,62 @@ function toResult(
   };
 }
 
+async function createPaypalDraftAfterConfirm(input: {
+  localInvoiceId: string;
+  recipientEmail: string;
+  recipientName?: string;
+  currency?: string;
+  dueDateMs?: number | null;
+  note?: string | null;
+  items: LineItem[];
+}): Promise<{ id: string; invoiceNumber: string | null; via: "toolkit" | "rest" }> {
+  if (toolkitCanCreateWithoutDueDate(input.dueDateMs)) {
+    try {
+      const created = await createDraftViaToolkit({
+        recipientEmail: input.recipientEmail,
+        recipientName: input.recipientName,
+        currency: input.currency,
+        note: input.note,
+        items: input.items,
+      });
+      return { ...created, via: "toolkit" };
+    } catch (error) {
+      console.error(
+        "PayPal Agent Toolkit create_invoice failed; falling back to REST",
+        error instanceof Error ? error.message : error,
+      );
+    }
+  }
+
+  const created = await createDraftInvoice(input);
+  return {
+    id: created.id,
+    invoiceNumber: created.detail?.invoice_number ?? null,
+    via: "rest",
+  };
+}
+
+async function sendPaypalShareLinkAfterConfirm(input: {
+  paypalInvoiceId: string;
+  localInvoiceId: string;
+  sendToRecipient?: boolean;
+}): Promise<{ hostedUrl: string; via: "toolkit" | "rest" }> {
+  try {
+    const sent = await sendInvoiceViaToolkit({
+      paypalInvoiceId: input.paypalInvoiceId,
+      sendToRecipient: input.sendToRecipient,
+    });
+    return { ...sent, via: "toolkit" };
+  } catch (error) {
+    console.error(
+      "PayPal Agent Toolkit send_invoice failed; falling back to REST",
+      error instanceof Error ? error.message : error,
+    );
+  }
+  const sent = await sendInvoiceAsShareLink(input);
+  return { ...sent, via: "rest" };
+}
+
 export async function confirmInvoice(
   invoiceId: string,
   options: { emailRecipient?: boolean } = {},
@@ -112,7 +173,7 @@ export async function confirmInvoice(
   let working = invoice;
 
   if (!paypalInvoiceId) {
-    const created = await createDraftInvoice({
+    const created = await createPaypalDraftAfterConfirm({
       localInvoiceId: invoice.id,
       recipientEmail: client.email,
       recipientName: client.name,
@@ -122,14 +183,14 @@ export async function confirmInvoice(
       items: invoice.lineItems,
     });
     paypalInvoiceId = created.id;
-    paypalInvoiceNumber = created.detail?.invoice_number ?? null;
+    paypalInvoiceNumber = created.invoiceNumber;
     working = await updateInvoice(invoice.id, {
       paypalInvoiceId,
       paypalInvoiceNumber,
     });
   }
 
-  const sent = await sendInvoiceAsShareLink({
+  const sent = await sendPaypalShareLinkAfterConfirm({
     paypalInvoiceId,
     localInvoiceId: invoice.id,
     sendToRecipient: options.emailRecipient === true,
@@ -156,6 +217,7 @@ export async function confirmInvoice(
       paypalInvoiceId,
       hostedUrl: sent.hostedUrl,
       amountCents: updated.amountCents,
+      sendVia: sent.via,
     },
   });
 
