@@ -21,7 +21,7 @@ function line(name: string, unitAmountCents: number, description?: string): Line
   return [{ name, description, quantity: 1, unitAmountCents }];
 }
 
-async function seed(): Promise<void> {
+export async function seedDemoInvoices(): Promise<void> {
   loadEnvConfig(process.cwd());
   const now = Date.now();
 
@@ -131,7 +131,10 @@ async function seed(): Promise<void> {
   console.log(`Seeded demo invoices. Total invoices in DB: ${ping.invoiceCount}`);
 }
 
-seed().catch((error: unknown) => {
-  console.error(error instanceof Error ? error.message : error);
-  process.exit(1);
-});
+const invokedDirectly = process.argv[1]?.replace(/\\/g, "/").endsWith("scripts/seed.ts");
+if (invokedDirectly) {
+  seedDemoInvoices().catch((error: unknown) => {
+    console.error(error instanceof Error ? error.message : error);
+    process.exit(1);
+  });
+}

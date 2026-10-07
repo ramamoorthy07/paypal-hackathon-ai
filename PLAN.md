@@ -6,4 +6,4 @@ Freelancers describe finished work in chat. PayPilot parses the job, shows a con
 
 **PayPal is the payment rail** (Invoicing REST + webhooks). **AI is the operator** (parse messy requests, draft invoice copy, compose reminders). Neither is decorative.
 
-Today's vertical slice: chat parse → confirm → sandbox invoice share link → webhook/poll PAID → `/invoices` → AG Grid dashboard → overdue PayPal reminders. Render and Postman come later.
+Vertical slice: chat parse → confirm → sandbox invoice share link → webhook/poll PAID → `/invoices` → AG Grid dashboard → overdue PayPal reminders → Render + Postman + demo script.

@@ -1,0 +1,182 @@
+{
+  "info": {
+    "name": "PayPilot",
+    "description": "PayPal AI Hackathon APIs for PayPilot. Import this collection and the PayPilot local environment. Chat streams SSE. Confirm is the first PayPal send. Webhook verify needs real PayPal transmission headers from a sandbox event.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Live",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/health/live",
+            "description": "Process liveness. Does not call PayPal or the LLM."
+          }
+        },
+        {
+          "name": "Full checks",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/health",
+            "description": "Env, SQLite, PayPal OAuth, Azure OpenAI models ping."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Chat and confirm",
+      "item": [
+        {
+          "name": "Chat (stream) — draft invoice",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"Invoice Acme Studio $120 for a logo refresh. Email buyer@personal.example.com. USD.\"\n    }\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/api/chat",
+            "description": "Streaming UI message protocol. proposeInvoice writes a local DRAFT only."
+          }
+        },
+        {
+          "name": "Confirm invoice (PayPal send)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"invoiceId\": \"{{draftInvoiceId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/invoices/confirm",
+            "description": "Creates a PayPal sandbox draft and sends it as a share link. First PayPal write."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Invoices",
+      "item": [
+        {
+          "name": "Sync status from PayPal",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/invoices/{{invoiceId}}/sync",
+            "description": "GET the PayPal invoice and apply PAID or CANCELLED locally. Use when webhooks cannot reach localhost."
+          }
+        },
+        {
+          "name": "Generate QR",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/invoices/{{invoiceId}}/qr",
+            "description": "PayPal generate-qr-code. Requires a sent PayPal invoice."
+          }
+        },
+        {
+          "name": "Send overdue reminder",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/invoices/{{invoiceId}}/remind",
+            "description": "AI note plus PayPal remind. Overdue, already sent, max two per UTC day."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard and cron",
+      "item": [
+        {
+          "name": "Monthly AI summary",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/summary/monthly",
+            "description": "Earnings briefing from local invoice totals. Does not call PayPal."
+          }
+        },
+        {
+          "name": "Overdue reminder sweep",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{cronSecret}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/cron/reminders",
+            "description": "Locally, omit Authorization when CRON_SECRET is unset. Production requires the bearer token."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Webhooks",
+      "item": [
+        {
+          "name": "PayPal invoice paid (shape only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "paypal-auth-algo",
+                "value": "SHA256withRSA"
+              },
+              {
+                "key": "paypal-cert-url",
+                "value": "https://api.sandbox.paypal.com/v1/notifications/certs/CERT-placeholder"
+              },
+              {
+                "key": "paypal-transmission-id",
+                "value": "placeholder-transmission-id"
+              },
+              {
+                "key": "paypal-transmission-sig",
+                "value": "placeholder-signature"
+              },
+              {
+                "key": "paypal-transmission-time",
+                "value": "2026-10-08T00:00:00Z"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"WH-DEMO-INVOICE-PAID\",\n  \"event_type\": \"INVOICING.INVOICE.PAID\",\n  \"resource\": {\n    \"id\": \"INV2-XXXXXXXXXXXX\",\n    \"status\": \"PAID\"\n  }\n}"
+            },
+            "url": "{{baseUrl}}/api/webhooks/paypal",
+            "description": "Shows the event shape. Signature verification will reject placeholder headers. Capture a real sandbox webhook to replay."
+          }
+        }
+      ]
+    }
+  ]
+}
