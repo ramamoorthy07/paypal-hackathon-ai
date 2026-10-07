@@ -66,7 +66,10 @@ function toResult(
   };
 }
 
-export async function confirmInvoice(invoiceId: string): Promise<ConfirmInvoiceResult> {
+export async function confirmInvoice(
+  invoiceId: string,
+  options: { emailRecipient?: boolean } = {},
+): Promise<ConfirmInvoiceResult> {
   const env = getEnv();
   const invoice = await getInvoiceById(invoiceId);
   if (!invoice) {
@@ -129,6 +132,7 @@ export async function confirmInvoice(invoiceId: string): Promise<ConfirmInvoiceR
   const sent = await sendInvoiceAsShareLink({
     paypalInvoiceId,
     localInvoiceId: invoice.id,
+    sendToRecipient: options.emailRecipient === true,
   });
   if (!sent.hostedUrl) {
     throw new ConfirmError(502, "missing_link", "PayPal did not return a payer share link.");

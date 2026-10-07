@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { centsToAmountString, isoDateFromMs } from "@/lib/money";
 
 export type DraftProposal = {
@@ -20,6 +20,9 @@ export type DraftProposal = {
   originalAmountCents: number | null;
   originalCurrency: string | null;
   fxRate: string | null;
+  fxSource?: "live" | "fallback" | null;
+  fxFetchedAt?: number | null;
+  fxAsOfDate?: string | null;
 };
 
 export type SentInvoice = {
@@ -101,6 +104,42 @@ function ConfirmDraftCard({ proposal }: { proposal: DraftProposal }) {
   const [sent, setSent] = useState<SentInvoice | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [dismissed, setDismissed] = useState(false);
+  const [emailRecipient, setEmailRecipient] = useState(false);
+  const [fx, setFx] = useState<{
+    usdPerInrLabel: string;
+    source: "live" | "fallback";
+    fetchedAt: number;
+    asOfDate: string | null;
+  } | null>(null);
+
+  useEffect(() => {
+    if (proposal.originalCurrency !== "INR") {
+      return;
+    }
+    let cancelled = false;
+    void fetch("/api/fx")
+      .then(async (response) => {
+        const body = (await response.json()) as {
+          ok?: boolean;
+          usdPerInrLabel?: string;
+          source?: "live" | "fallback";
+          fetchedAt?: number;
+          asOfDate?: string | null;
+        };
+        if (!cancelled && response.ok && body.ok && body.usdPerInrLabel && body.source && body.fetchedAt) {
+          setFx({
+            usdPerInrLabel: body.usdPerInrLabel,
+            source: body.source,
+            fetchedAt: body.fetchedAt,
+            asOfDate: body.asOfDate ?? null,
+          });
+        }
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [proposal.originalCurrency]);
 
   if (dismissed && !sent) {
     return (
@@ -117,7 +156,7 @@ function ConfirmDraftCard({ proposal }: { proposal: DraftProposal }) {
       const response = await fetch("/api/invoices/confirm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ invoiceId: proposal.invoiceId }),
+        body: JSON.stringify({ invoiceId: proposal.invoiceId, emailRecipient }),
       });
       const body = (await response.json()) as ConfirmResponse;
       if (!response.ok || !body.ok) {
@@ -185,8 +224,13 @@ function ConfirmDraftCard({ proposal }: { proposal: DraftProposal }) {
 
         {inr ? (
           <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:bg-amber-950/40 dark:text-amber-100">
-            Converted from ₹{inr.amount} at labeled demo rate {inr.rate} USD per 1 INR. Not a live
-            market quote.
+            Converted from ₹{inr.amount} at {fx?.usdPerInrLabel ?? inr.rate} USD per 1 INR
+            {fx?.source === "live"
+              ? ` (live Frankfurter${fx.asOfDate ? `, as of ${fx.asOfDate}` : ""}; fetched ${new Date(fx.fetchedAt).toISOString()})`
+              : fx?.source === "fallback"
+                ? " (env fallback — live FX was unavailable)"
+                : " (rate stored on this draft)"}
+            . You confirmed this conversion before the draft was saved.
           </p>
         ) : null}
 
@@ -218,9 +262,18 @@ function ConfirmDraftCard({ proposal }: { proposal: DraftProposal }) {
         ) : (
           <>
             <p className="text-xs text-zinc-500">
-              Confirm creates a real PayPal sandbox invoice and a payer share link. Nothing is sent
-              until you confirm.
+              Confirm creates a real PayPal sandbox invoice and a payer share link
+              (`send_to_recipient: false` unless you also email). Nothing reaches PayPal until you
+              confirm.
             </p>
+            <label className="flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-300">
+              <input
+                type="checkbox"
+                checked={emailRecipient}
+                onChange={(event) => setEmailRecipient(event.target.checked)}
+              />
+              Also email the invoice via PayPal
+            </label>
             {error ? <p className="text-sm text-red-600 dark:text-red-400">{error}</p> : null}
             <div className="flex gap-2">
               <button

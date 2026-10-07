@@ -31,7 +31,7 @@ export const invoiceProposalSchema = z.object({
     .number()
     .positive()
     .optional()
-    .describe("Labeled demo USD-per-INR rate. Required when originalInrAmountCents is set."),
+    .describe("USD-per-INR rate from the system prompt (live Frankfurter or env fallback). Required when originalInrAmountCents is set."),
   fxConfirmedByUser: z
     .boolean()
     .optional()

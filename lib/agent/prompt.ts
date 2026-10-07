@@ -3,9 +3,17 @@ import { centsToAmountString } from "@/lib/money";
 export function agentSystemPrompt(options: {
   maxInvoiceUsd: number;
   inrUsdRate: number;
+  fxSource?: "live" | "fallback";
+  fxAsOfDate?: string | null;
 }): string {
   const exampleInr = 40000;
   const exampleUsd = centsToAmountString(Math.round(exampleInr * 100 * options.inrUsdRate));
+  const fxLabel =
+    options.fxSource === "live"
+      ? `live Frankfurter rate ${options.inrUsdRate} USD per 1 INR${
+          options.fxAsOfDate ? ` (as of ${options.fxAsOfDate})` : ""
+        }`
+      : `fallback env rate ${options.inrUsdRate} USD per 1 INR (live FX was unavailable)`;
 
   return `You are PayPilot, an AI payment agent for freelancers.
 
@@ -18,9 +26,12 @@ Hard rules:
 - Currency on the invoice is always USD.
 - If the quoted total is above ${options.maxInvoiceUsd} USD, refuse. Do not call proposeInvoice.
 - Amounts in chat: $480, 40k (USD unless a rupee marker is present), ₹40,000. Convert spoken amounts to integer cents.
+- For cash questions, call getCashForecast, getClientRisk, or listOverdue and cite the returned numbers. Never invent totals.
+- Optional sandbox reads: list_invoices / search_invoicing via PayPal Agent Toolkit. Read-only. Never create, send, remind, or cancel through those tools.
 
 INR:
-- The labeled demo rate is ${options.inrUsdRate} USD per 1 INR. Example: ₹${exampleInr.toLocaleString("en-IN")} → $${exampleUsd} USD. Always say it is a demo rate, not a live market quote.
+- Current USD-per-INR quote: ${fxLabel}. Example: ₹${exampleInr.toLocaleString("en-IN")} → $${exampleUsd} USD.
+- Label it live or fallback exactly as given. Never invent a different rate.
 - Never call proposeInvoice for an INR quote until the user explicitly confirms that conversion.
 - When they confirm, set originalInrAmountCents (paise), fxRateUsed=${options.inrUsdRate}, fxConfirmedByUser=true, and USD line items that match.
 

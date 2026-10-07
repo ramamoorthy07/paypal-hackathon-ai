@@ -10,6 +10,7 @@ export const maxDuration = 60;
 
 const confirmBodySchema = z.object({
   invoiceId: z.string().trim().min(1).max(80),
+  emailRecipient: z.boolean().optional(),
 });
 
 export async function POST(req: Request): Promise<NextResponse> {
@@ -40,7 +41,9 @@ export async function POST(req: Request): Promise<NextResponse> {
   }
 
   try {
-    const result = await confirmInvoice(parsed.data.invoiceId);
+    const result = await confirmInvoice(parsed.data.invoiceId, {
+      emailRecipient: parsed.data.emailRecipient === true,
+    });
     return NextResponse.json({ ok: true, ...result });
   } catch (error) {
     if (error instanceof ConfirmError) {

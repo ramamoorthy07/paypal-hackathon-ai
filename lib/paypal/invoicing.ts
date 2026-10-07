@@ -124,6 +124,7 @@ export async function createDraftInvoice(input: CreateDraftInvoiceInput): Promis
 export async function sendInvoiceAsShareLink(input: {
   paypalInvoiceId: string;
   localInvoiceId: string;
+  sendToRecipient?: boolean;
 }): Promise<{ hostedUrl: string }> {
   const link = await paypalFetch(
     `/v2/invoicing/invoices/${encodeURIComponent(input.paypalInvoiceId)}/send`,
@@ -132,7 +133,7 @@ export async function sendInvoiceAsShareLink(input: {
       method: "POST",
       idempotencyKey: idempotencyKey(input.localInvoiceId, "send"),
       body: JSON.stringify({
-        send_to_recipient: false,
+        send_to_recipient: input.sendToRecipient === true,
         send_to_invoicer: false,
       }),
     },

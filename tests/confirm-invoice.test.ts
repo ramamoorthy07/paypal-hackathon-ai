@@ -106,6 +106,7 @@ describe("confirmInvoice", () => {
     expect(sendInvoiceAsShareLinkMock).toHaveBeenCalledWith({
       paypalInvoiceId: "INV2-NEW",
       localInvoiceId: "inv-1",
+      sendToRecipient: false,
     });
     expect(insertAuditLogMock).toHaveBeenCalledWith(
       expect.objectContaining({ actor: "user", action: "confirm_invoice", invoiceId: "inv-1" }),
@@ -115,6 +116,26 @@ describe("confirmInvoice", () => {
       paypalInvoiceId: "INV2-NEW",
       hostedUrl: "https://www.sandbox.paypal.com/invoice/p/#INV2-NEW",
       alreadySent: false,
+    });
+  });
+
+  it("emails the recipient through PayPal only when asked", async () => {
+    getInvoiceByIdMock.mockResolvedValue(draft());
+    createDraftInvoiceMock.mockResolvedValue({
+      id: "INV2-MAIL",
+      status: "DRAFT",
+      detail: { invoice_number: "PP-2" },
+    });
+    sendInvoiceAsShareLinkMock.mockResolvedValue({
+      hostedUrl: "https://www.sandbox.paypal.com/invoice/p/#INV2-MAIL",
+    });
+
+    await confirmInvoice("inv-1", { emailRecipient: true });
+
+    expect(sendInvoiceAsShareLinkMock).toHaveBeenCalledWith({
+      paypalInvoiceId: "INV2-MAIL",
+      localInvoiceId: "inv-1",
+      sendToRecipient: true,
     });
   });
 
@@ -147,6 +168,7 @@ describe("confirmInvoice", () => {
     expect(sendInvoiceAsShareLinkMock).toHaveBeenCalledWith({
       paypalInvoiceId: "INV2-RETRY",
       localInvoiceId: "inv-1",
+      sendToRecipient: false,
     });
   });
 
