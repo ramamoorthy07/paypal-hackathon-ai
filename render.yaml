@@ -1,7 +1,7 @@
 services:
   - type: web
     name: paypilot
-    runtime: node
+    runtime: docker
     plan: starter
     healthCheckPath: /api/health/live
     buildCommand: npm ci --include=dev && npm rebuild better-sqlite3 && npm run build
