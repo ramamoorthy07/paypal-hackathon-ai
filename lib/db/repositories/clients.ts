@@ -10,7 +10,7 @@ export type NewClient = {
 };
 
 export async function upsertClientByEmail(input: NewClient): Promise<ClientRow> {
-  const database = getDb();
+  const database = await getDb();
   const email = input.email.trim().toLowerCase();
   const existing = database.select().from(clients).where(eq(clients.email, email)).get();
   const now = Date.now();
@@ -39,9 +39,9 @@ export async function upsertClientByEmail(input: NewClient): Promise<ClientRow> 
 }
 
 export async function getClientById(id: string): Promise<ClientRow | undefined> {
-  return getDb().select().from(clients).where(eq(clients.id, id)).get();
+  return (await getDb()).select().from(clients).where(eq(clients.id, id)).get();
 }
 
 export async function listClients(): Promise<ClientRow[]> {
-  return getDb().select().from(clients).all();
+  return (await getDb()).select().from(clients).all();
 }

@@ -1,16 +1,25 @@
-import { mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { dirname, isAbsolute, resolve } from "node:path";
-import Database from "better-sqlite3";
 import { count } from "drizzle-orm";
-import { drizzle, type BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
-import { migrate } from "drizzle-orm/better-sqlite3/migrator";
+import { drizzle, type SQLJsDatabase } from "drizzle-orm/sql-js";
+import { migrate } from "drizzle-orm/sql-js/migrator";
+import type { Database as SqlJsDatabase } from "sql.js";
 import * as schema from "@/lib/db/schema";
 import { invoices } from "@/lib/db/schema";
 
-export type AppDatabase = BetterSQLite3Database<typeof schema>;
+export type AppDatabase = SQLJsDatabase<typeof schema>;
 
-let db: AppDatabase | undefined;
-let migrated = false;
+type DbGlobals = {
+  __paypilotSql?: SqlJsDatabase;
+  __paypilotDb?: AppDatabase;
+  __paypilotDbPath?: string;
+  __paypilotInit?: Promise<AppDatabase>;
+  __paypilotPersistEnabled?: boolean;
+};
+
+const g = globalThis as typeof globalThis & DbGlobals;
+const requireFromApp = createRequire(resolve(process.cwd(), "package.json"));
 
 export function sqliteFilePath(databaseUrl: string): string {
   let path = databaseUrl;
@@ -31,26 +40,83 @@ export function getDatabaseUrl(): string {
   return fromEnv && fromEnv.length > 0 ? fromEnv : "file:./data/paypilot.db";
 }
 
-export function getDb(): AppDatabase {
-  if (!db) {
-    const filePath = sqliteFilePath(getDatabaseUrl());
-    mkdirSync(dirname(filePath), { recursive: true });
-    const client = new Database(filePath);
-    client.pragma("journal_mode = WAL");
-    client.pragma("foreign_keys = ON");
-    db = drizzle(client, { schema });
+function persist(): void {
+  const sqlite = g.__paypilotSql;
+  const filePath = g.__paypilotDbPath;
+  if (!sqlite || !filePath) {
+    return;
   }
-
-  if (!migrated) {
-    migrate(db, { migrationsFolder: resolve(process.cwd(), "drizzle") });
-    migrated = true;
-  }
-
-  return db;
+  mkdirSync(dirname(filePath), { recursive: true });
+  writeFileSync(filePath, Buffer.from(sqlite.export()));
 }
 
-export function pingDb(): { invoiceCount: number } {
-  const database = getDb();
+function isTransactionSql(sql: string): boolean {
+  return /^(BEGIN|COMMIT|ROLLBACK|SAVEPOINT|RELEASE)\b/i.test(sql.trim());
+}
+
+function attachPersist(sqlite: SqlJsDatabase): SqlJsDatabase {
+  const originalPrepare = sqlite.prepare.bind(sqlite);
+  sqlite.prepare = ((sql: string) => {
+    const stmt = originalPrepare(sql);
+    const originalRun = stmt.run.bind(stmt);
+    stmt.run = ((values?: Parameters<typeof stmt.run>[0]) => {
+      const result = originalRun(values);
+      if (g.__paypilotPersistEnabled !== false && !isTransactionSql(sql)) {
+        persist();
+      }
+      return result;
+    }) as typeof stmt.run;
+    return stmt;
+  }) as typeof sqlite.prepare;
+  return sqlite;
+}
+
+function loadExistingFile(filePath: string): Uint8Array | undefined {
+  if (!existsSync(filePath)) {
+    return undefined;
+  }
+  const bytes = readFileSync(filePath);
+  return bytes.length > 0 ? new Uint8Array(bytes) : undefined;
+}
+
+export async function initDb(): Promise<AppDatabase> {
+  if (g.__paypilotDb) {
+    return g.__paypilotDb;
+  }
+  if (!g.__paypilotInit) {
+    g.__paypilotInit = (async () => {
+      const filePath = sqliteFilePath(getDatabaseUrl());
+      g.__paypilotDbPath = filePath;
+
+      const initSqlJs = requireFromApp("sql.js") as typeof import("sql.js");
+      const wasmPath = requireFromApp.resolve("sql.js/dist/sql-wasm.wasm");
+      const SQL = await initSqlJs({
+        wasmBinary: readFileSync(wasmPath),
+      });
+
+      mkdirSync(dirname(filePath), { recursive: true });
+      const sqlite = attachPersist(new SQL.Database(loadExistingFile(filePath)));
+      g.__paypilotSql = sqlite;
+
+      const database = drizzle(sqlite, { schema });
+      g.__paypilotPersistEnabled = false;
+      migrate(database, { migrationsFolder: resolve(process.cwd(), "drizzle") });
+      g.__paypilotPersistEnabled = true;
+      persist();
+      g.__paypilotDb = database;
+      return database;
+    })();
+  }
+
+  return g.__paypilotInit;
+}
+
+export async function getDb(): Promise<AppDatabase> {
+  return initDb();
+}
+
+export async function pingDb(): Promise<{ invoiceCount: number }> {
+  const database = await getDb();
   const row = database.select({ invoiceCount: count() }).from(invoices).get();
   return { invoiceCount: row?.invoiceCount ?? 0 };
 }

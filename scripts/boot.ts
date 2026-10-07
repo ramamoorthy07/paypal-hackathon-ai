@@ -4,8 +4,8 @@ import { seedDemoInvoices } from "@/scripts/seed";
 
 async function boot(): Promise<void> {
   loadEnvConfig(process.cwd());
-  getDb();
-  const { invoiceCount } = pingDb();
+  await getDb();
+  const { invoiceCount } = await pingDb();
   if (process.env.SEED_ON_BOOT === "true" && invoiceCount === 0) {
     await seedDemoInvoices();
     return;
