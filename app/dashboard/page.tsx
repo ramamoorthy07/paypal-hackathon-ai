@@ -1,18 +1,21 @@
 import { AppHeader } from "@/components/app-header";
+import { CashForecastChart } from "@/components/cash-forecast-chart";
+import { ClientRiskGrid } from "@/components/client-risk-grid";
 import { EarningsGrid } from "@/components/earnings-grid";
 import { KpiCard } from "@/components/kpi-card";
 import { MonthlySummary } from "@/components/monthly-summary";
 import { earningsSnapshot, toEarningsRow } from "@/lib/invoices/earnings";
-import { listInvoiceViews } from "@/lib/invoices/views";
+import { insightsSnapshot } from "@/lib/insights/queries";
 import { centsToAmountString } from "@/lib/money";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const now = Date.now();
-  const invoices = await listInvoiceViews(now);
+  const { invoices, behaviors, forecast } = await insightsSnapshot(now);
   const snapshot = earningsSnapshot(invoices, now);
-  const rows = invoices.map(toEarningsRow);
+  const byClient = new Map(behaviors.map((row) => [row.clientId, row]));
+  const rows = invoices.map((invoice) => toEarningsRow(invoice, byClient.get(invoice.clientId)));
 
   return (
     <div className="flex flex-1 flex-col bg-zinc-50 dark:bg-black">
@@ -41,6 +44,8 @@ export default async function DashboardPage() {
           />
         </div>
 
+        <CashForecastChart weeks={forecast.weeks} />
+        <ClientRiskGrid rows={behaviors} />
         <EarningsGrid rows={rows} nowMs={now} />
         <MonthlySummary />
       </main>

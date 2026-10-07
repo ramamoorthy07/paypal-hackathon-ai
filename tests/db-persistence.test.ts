@@ -38,11 +38,11 @@ describe("libsql persistence", () => {
 
     await seedDemoInvoices();
     const seeded = await pingDb();
-    expect(seeded.invoiceCount).toBe(5);
-    expect(seeded.demoInvoiceCount).toBe(5);
+    expect(seeded.invoiceCount).toBe(25);
+    expect(seeded.demoInvoiceCount).toBe(25);
 
     await seedDemoInvoices();
     const skipped = await pingDb();
-    expect(skipped.invoiceCount).toBe(5);
+    expect(skipped.invoiceCount).toBe(25);
   });
 });

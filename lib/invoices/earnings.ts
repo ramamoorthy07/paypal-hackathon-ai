@@ -1,4 +1,5 @@
 import { centsToAmountString, isoDateFromMs } from "@/lib/money";
+import type { ClientBehavior, RiskBand } from "@/lib/insights/behavior";
 import type { InvoiceView } from "@/lib/invoices/views";
 import type { DisplayStatus } from "@/lib/invoices/state";
 
@@ -15,6 +16,8 @@ export type EarningsRow = {
   createdAt: string;
   dueDateMs: number | null;
   paidAtMs: number | null;
+  riskScore: number | null;
+  riskBand: RiskBand | null;
 };
 
 export type OverdueItem = {
@@ -50,7 +53,10 @@ export function utcMonthRange(now = Date.now()): { start: number; end: number; m
   return { start, end, monthKey, monthLabel };
 }
 
-export function toEarningsRow(invoice: InvoiceView): EarningsRow {
+export function toEarningsRow(
+  invoice: InvoiceView,
+  behavior?: ClientBehavior,
+): EarningsRow {
   return {
     id: invoice.id,
     clientName: invoice.clientName,
@@ -64,6 +70,8 @@ export function toEarningsRow(invoice: InvoiceView): EarningsRow {
     createdAt: isoDateFromMs(invoice.createdAt),
     dueDateMs: invoice.dueDate,
     paidAtMs: invoice.paidAt,
+    riskScore: behavior?.riskScore ?? null,
+    riskBand: behavior?.riskBand ?? null,
   };
 }
 

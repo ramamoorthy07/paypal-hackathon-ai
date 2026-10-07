@@ -76,6 +76,8 @@ export function EarningsGrid({ rows, nowMs }: { rows: EarningsRow[]; nowMs: numb
           params.value == null ? "" : `$${centsToAmountString(Math.round(Number(params.value) * 100))}`,
       },
       { field: "displayStatus", headerName: "Status", minWidth: 120, filter: true },
+      { field: "riskBand", headerName: "Risk", minWidth: 100, filter: true },
+      { field: "riskScore", headerName: "Score", minWidth: 90, type: "numericColumn" },
       { field: "dueDate", headerName: "Due", minWidth: 110, filter: true },
       { field: "paidAt", headerName: "Paid", minWidth: 110, filter: true },
       { field: "createdAt", headerName: "Created", minWidth: 110, filter: true },
