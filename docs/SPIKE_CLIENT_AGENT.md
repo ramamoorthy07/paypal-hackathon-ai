@@ -2,57 +2,43 @@
 
 PayPilot's HITL rule is unchanged: **the model never creates or sends a PayPal invoice**. Confirm in the UI is the only write path.
 
-This spike asked what a *client* agent would see if we handed it `@paypal/agent-toolkit` against sandbox.
+This spike asked whether a *client* agent can **pay** a sandbox invoice (not whether we can list toolkit tools).
 
-## Toolkit (v1.11.0)
+## Paths tried
 
-`PayPalAgentToolkit` from `@paypal/agent-toolkit/ai-sdk` with `configuration.context.sandbox: true`.
+| Path | Attempted | Success | Detail |
+| --- | --- | --- | --- |
+| record-payment | yes | yes | 5/5 toolkit record_payment_for_invoice marked the invoice paid (external OTHER). |
+| payouts | no | no | Skipped: set PAYPAL_PAYOUT_RECEIVER (sandbox Personal email) to try Payouts. Payouts send money; they do not mark an Invoicing invoice PAID. |
+| kernel | no | no | Skipped: KERNEL_API_KEY is not set. Cannot open a Kernel cloud browser as the sandbox Personal buyer. |
 
-Invoice tools the package can expose:
+### record-payment runs
 
-| Tool | Kind |
-| --- | --- |
-| `list_invoices` | read |
-| `search_invoicing` | read |
-| `get_invoice` | read |
-| `create_invoice` | write |
-| `send_invoice` | write |
-| `send_invoice_reminder` | write |
-| `cancel_sent_invoice` | write |
-| `delete_invoice` | write |
-| `generate_invoice_qr_code` | write-ish |
-| plus recurring-series create/activate/cancel/delete | write |
-
-`get_merchant_insights` throws in sandbox (`not supported in sandbox mode`).
-
-The toolkit's sandbox API host is `https://api.sandbox.paypal.com` (not `api-m`). PayPilot's own invoicing client still uses `api-m.sandbox.paypal.com`.
-
-## What PayPilot enables
-
-```ts
-actions: { invoices: { list: true, search: true } }
-context: { sandbox: true }
+```
+5/5
+run 1: INV2-ENFV-DUDB-H2UX-ZSHB MARKED_AS_PAID
+run 2: INV2-59Q5-BSJ6-GYMX-U8WB MARKED_AS_PAID
+run 3: INV2-L685-CZ96-FDLS-QM8N MARKED_AS_PAID
+run 4: INV2-QW7Q-WW9C-5WCD-EEMZ MARKED_AS_PAID
+run 5: INV2-D3H4-CWQ8-XJ8W-JZ2U MARKED_AS_PAID
 ```
 
-`isPaypalReadToolName` also drops anything matching create/send/cancel/delete/update/record/remind/generate/activate.
+## Webhook PAID
 
-Chat may attach those read tools. MCP does **not** expose them; MCP only reads the local DB.
+This spike polled `GET /v2/invoicing/invoices/{id}` after each record-payment. All five returned `MARKED_AS_PAID`. It did **not** wait for `INVOICING.INVOICE.PAID` to hit Render. Merchant-recorded payments may emit that event; they are still not a Personal buyer checkout.
 
-## Client-agent risk
+## Recommendation
 
-If a judge (or a Cursor MCP client) received the **full** toolkit, it could draft and send sandbox invoices without the confirmation card. That breaks HITL.
+Use **record-payment** only as a merchant-side mark-paid. It is not a client paying. Do **not** ship a client-agent that records OTHER payments — that bypasses the buyer. For a real client-agent, a human (or Kernel with buyer credentials) must open the share link. **Drop the client-agent product** unless Kernel + buyer login is funded.
 
-Safe pattern:
+## Toolkit vs REST (confirm path)
 
-1. PayPilot chat: `proposeInvoice` (local DRAFT) + cash/risk/overdue + optional toolkit list/search.
-2. Human Confirm → PayPal share link (`send_to_recipient: false` unless the checkbox).
-3. External MCP: overdue / forecast / risk facts only.
+See [docs/TOOLKIT_CONFIRM.md](TOOLKIT_CONFIRM.md). Chat still only gets list/search.
 
 ## How to rerun
 
 ```bash
-npm run spike:tools
-npx tsx scripts/spike/sandbox-list.ts
+npm run spike:client-agent
 ```
 
-`spike:tools` uses dummy credentials and only prints tool names. `sandbox-list` needs sandbox keys in `.env.local` and lists at most 5 invoice ids/statuses. It does not print secrets.
+Optional env (never commit values): `PAYPAL_PAYOUT_RECEIVER`, `KERNEL_API_KEY`.
