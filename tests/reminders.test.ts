@@ -80,12 +80,14 @@ describe("sendOverdueReminder", () => {
     resetEnvCache();
     vi.clearAllMocks();
     countRemindersSinceMock.mockResolvedValue(0);
+    listInvoiceViewsMock.mockResolvedValue([overdueView()]);
     insertReminderMock.mockImplementation(async (input) => {
       const row: ReminderRow = {
         id: input.id,
         invoiceId: input.invoiceId,
         subject: input.subject,
         note: input.note,
+        tone: input.tone ?? "friendly",
         sentAt: input.sentAt ?? now,
       };
       return row;
@@ -158,6 +160,7 @@ describe("runOverdueReminderSweep", () => {
       invoiceId: input.invoiceId,
       subject: input.subject,
       note: input.note,
+      tone: input.tone ?? "friendly",
       sentAt: input.sentAt ?? now,
     }));
     generateTextMock.mockResolvedValue({

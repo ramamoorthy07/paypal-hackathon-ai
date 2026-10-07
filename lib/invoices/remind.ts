@@ -4,6 +4,7 @@ import { insertAuditLog } from "@/lib/db/repositories/audit-log";
 import { countRemindersSince, insertReminder } from "@/lib/db/repositories/reminders";
 import type { AuditActor, ReminderRow } from "@/lib/db/schema";
 import { getEnv } from "@/lib/env";
+import { behaviorForClient, reminderToneFromRisk } from "@/lib/insights/behavior";
 import {
   fallbackReminderCopy,
   MAX_REMINDERS_PER_UTC_DAY,
@@ -11,6 +12,7 @@ import {
   reminderCopyPrompt,
   utcDayStart,
   type ReminderCopy,
+  type ReminderTone,
 } from "@/lib/invoices/reminder-copy";
 import { getInvoiceView, listInvoiceViews, type InvoiceView } from "@/lib/invoices/views";
 import { languageModel } from "@/lib/llm/provider";
@@ -60,24 +62,37 @@ export type SendOverdueReminderResult = {
 
 export async function composeReminderCopy(
   invoice: InvoiceView,
-  now = Date.now(),
-): Promise<{ copy: ReminderCopy; source: "model" | "fallback" }> {
-  const fallback = fallbackReminderCopy(invoice);
+  options: { now?: number; tone?: ReminderTone } = {},
+): Promise<{ copy: ReminderCopy; source: "model" | "fallback"; tone: ReminderTone }> {
+  const now = options.now ?? Date.now();
+  const tone = options.tone ?? "friendly";
+  const fallback = fallbackReminderCopy(invoice, tone);
   try {
     const env = getEnv();
     const result = await generateText({
       model: languageModel(env),
-      prompt: reminderCopyPrompt(invoice, now),
+      prompt: reminderCopyPrompt(invoice, now, tone),
       maxOutputTokens: 4000,
     });
-    const parsed = parseReminderCopy(plainTextFromGenerateResult(result));
+    const parsed = parseReminderCopy(plainTextFromGenerateResult(result), tone);
     if (parsed) {
-      return { copy: parsed, source: "model" };
+      return { copy: parsed, source: "model", tone };
     }
   } catch (error) {
     console.error("reminder copy failed", error instanceof Error ? error.message : error);
   }
-  return { copy: fallback, source: "fallback" };
+  return { copy: fallback, source: "fallback", tone };
+}
+
+export async function reminderToneForInvoice(
+  invoice: InvoiceView,
+  reminderCountToday: number,
+  now = Date.now(),
+): Promise<ReminderTone> {
+  const invoices = await listInvoiceViews(now);
+  const related = invoices.filter((row) => row.clientId === invoice.clientId);
+  const behavior = behaviorForClient(invoice.clientId, related, now);
+  return reminderToneFromRisk(behavior.riskScore, reminderCountToday);
 }
 
 export function reminderEligibility(
@@ -126,7 +141,8 @@ export async function sendOverdueReminder(
     throw new RemindError(reason === "capped" ? 429 : 409, reason, eligibilityMessage(reason));
   }
 
-  const { copy, source } = await composeReminderCopy(invoice, now);
+  const tone = await reminderToneForInvoice(invoice, reminderCountToday, now);
+  const { copy, source } = await composeReminderCopy(invoice, { now, tone });
   const reminderId = randomUUID();
 
   await remindInvoice({
@@ -142,6 +158,7 @@ export async function sendOverdueReminder(
     invoiceId: invoice.id,
     subject: copy.subject,
     note: copy.note,
+    tone: copy.tone,
     sentAt: now,
   });
 
@@ -155,6 +172,7 @@ export async function sendOverdueReminder(
       paypalInvoiceId,
       copySource: source,
       subject: copy.subject,
+      tone: copy.tone,
     },
   });
 

@@ -2,11 +2,14 @@ import { and, count, desc, eq, gte } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { reminders, type ReminderRow } from "@/lib/db/schema";
 
+export type ReminderTone = "friendly" | "firm" | "final";
+
 export type NewReminder = {
   id: string;
   invoiceId: string;
   subject: string;
   note: string;
+  tone?: ReminderTone;
   sentAt?: number;
 };
 
@@ -16,6 +19,7 @@ export async function insertReminder(input: NewReminder): Promise<ReminderRow> {
     invoiceId: input.invoiceId,
     subject: input.subject,
     note: input.note,
+    tone: input.tone ?? "friendly",
     sentAt: input.sentAt ?? Date.now(),
   };
   const database = await getDb();

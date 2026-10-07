@@ -79,6 +79,9 @@ describe("fallback and prompt", () => {
     expect(prompt).not.toContain("ap@northwind.example");
     expect(reminderFacts(invoice, now)).toContain("Days overdue: 15 day(s)");
     expect(fallbackReminderCopy(invoice).note).toContain("$750.00");
+    expect(fallbackReminderCopy(invoice, "firm").subject).toMatch(/Overdue/i);
+    expect(fallbackReminderCopy(invoice, "final").subject).toMatch(/Final reminder/i);
+    expect(reminderCopyPrompt(invoice, now, "firm")).toContain("Tone: firm");
   });
 });
 

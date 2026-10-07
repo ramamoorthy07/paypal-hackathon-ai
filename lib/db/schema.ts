@@ -77,6 +77,7 @@ export const reminders = sqliteTable(
     sentAt: integer("sent_at").notNull(),
     subject: text("subject").notNull(),
     note: text("note").notNull(),
+    tone: text("tone").notNull().default("friendly").$type<"friendly" | "firm" | "final">(),
   },
   (table) => [index("reminders_invoice_id_idx").on(table.invoiceId)],
 );
