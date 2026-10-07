@@ -35,9 +35,14 @@ export function ChatApp() {
               Freelancer payment agent
             </h1>
           </div>
-          <a className="text-sm text-zinc-500 underline" href="/api/health">
-            Health
-          </a>
+          <nav className="flex items-center gap-4 text-sm text-zinc-500">
+            <a className="underline" href="/invoices">
+              Invoices
+            </a>
+            <a className="underline" href="/api/health">
+              Health
+            </a>
+          </nav>
         </div>
       </header>
 

@@ -52,3 +52,6 @@ Use a **Sandbox Business** app for the merchant credentials. A **Sandbox Persona
 - `/api/chat` — streaming agent with `proposeInvoice` (local `DRAFT` only; no PayPal send)
 - `/` — chat UI and confirmation card
 - `POST /api/invoices/confirm` — first PayPal contact: create draft + send as share link, then local `SENT`
+- `/invoices` and `/invoices/[id]` — local list, derived OVERDUE, payer link, QR
+- `POST /api/webhooks/paypal` — verify-webhook-signature, then PAID/CANCELLED (idempotent)
+- `POST /api/invoices/[id]/sync` — fallback GET of the PayPal invoice when webhooks cannot reach localhost

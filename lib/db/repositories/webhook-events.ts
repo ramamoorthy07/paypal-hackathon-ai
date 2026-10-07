@@ -13,13 +13,21 @@ export async function recordWebhookEvent(eventId: string, type: string): Promise
     return false;
   }
 
-  getDb()
-    .insert(webhookEvents)
-    .values({
-      eventId,
-      type,
-      processedAt: Date.now(),
-    })
-    .run();
-  return true;
+  try {
+    getDb()
+      .insert(webhookEvents)
+      .values({
+        eventId,
+        type,
+        processedAt: Date.now(),
+      })
+      .run();
+    return true;
+  } catch {
+    const again = await getWebhookEvent(eventId);
+    if (again) {
+      return false;
+    }
+    throw new Error(`Failed to record webhook event ${eventId}.`);
+  }
 }

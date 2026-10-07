@@ -211,6 +211,9 @@ function ConfirmDraftCard({ proposal }: { proposal: DraftProposal }) {
               PayPal invoice {sent.paypalInvoiceId}
               {sent.alreadySent ? " · already sent" : ""}
             </p>
+            <a className="text-sm text-emerald-900 underline dark:text-emerald-100" href={`/invoices/${sent.invoiceId}`}>
+              Open invoice
+            </a>
           </div>
         ) : (
           <>
