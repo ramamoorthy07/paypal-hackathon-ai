@@ -115,6 +115,18 @@ Shooting script: [DEMO.md](DEMO.md).
 - `POST /api/invoices/[id]/remind` — AI note + PayPal remind (overdue, max 2/UTC day)
 - `GET|POST /api/cron/overdue` — overdue PayPal remind sweep (alias `/api/cron/reminders`); `CRON_SECRET` in production; GitHub Actions twice daily UTC
 
+## Security
+
+- **HITL:** the model can only `proposeInvoice` (local `DRAFT`). PayPal create/send happens only after the user confirms in the UI.
+- **Caps:** `MAX_INVOICE_USD` (default 5000), 2 PayPal reminders per invoice per UTC day, per-IP rate limit, daily LLM and PayPal write budgets.
+- **Sanitization:** untrusted names, notes, and emails are stripped of HTML, schemes, and control characters before storage.
+- **Access gate:** production chat, confirm, and remind require a `DEMO_ACCESS_CODE` cookie from `/unlock`. Health and the PayPal webhook are public.
+- **Webhooks:** `/api/webhooks/paypal` verifies `verify-webhook-signature` against `PAYPAL_WEBHOOK_ID`. Invalid signatures are rejected. Event ids are idempotent.
+- **Idempotency:** PayPal writes send `PayPal-Request-Id` derived from the local invoice id. Illegal or stale status moves are ignored.
+- **Secrets:** `.env*` is gitignored except `.env.example` (empty values). gitleaks over this branch history: no leaks found. Do not commit real keys.
+
+Prompt-injection cases (jailbreak names/notes, extra `paypalSent` fields, missing email) are covered in `tests/prompt-injection.test.ts` and must fail safely.
+
 ## License
 
 MIT. See [LICENSE](LICENSE).
