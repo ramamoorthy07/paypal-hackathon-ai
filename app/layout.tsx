@@ -24,10 +24,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full">
-        <div className="flex min-h-full bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-50">
+      <body className="h-full">
+        <div className="flex h-full bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-50">
           <AppSidebar />
-          <div className="flex min-h-dvh min-w-0 flex-1 flex-col">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col">
             <AppMobileNav />
             <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">{children}</div>
           </div>
