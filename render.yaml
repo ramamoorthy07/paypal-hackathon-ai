@@ -34,3 +34,5 @@ services:
         sync: false
       - key: DEMO_ACCESS_CODE
         sync: false
+      - key: MCP_BEARER_TOKEN
+        sync: false

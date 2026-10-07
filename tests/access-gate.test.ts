@@ -31,6 +31,8 @@ describe("demo access paths", () => {
     expect(isDemoProtectedPath("/api/invoices/inv-1/sync")).toBe(false);
     expect(isDemoProtectedPath("/api/cron/reminders")).toBe(false);
     expect(isDemoProtectedPath("/api/cron/overdue")).toBe(false);
+    expect(isDemoProtectedPath("/api/mcp")).toBe(false);
+    expect(isDemoProtectedPath("/api/fx")).toBe(false);
   });
 });
 
