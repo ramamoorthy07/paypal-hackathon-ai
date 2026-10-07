@@ -10,7 +10,7 @@ AI freelancer payment agent. Talk in chat, confirm an invoice, send a real PayPa
 cp .env.example .env.local
 ```
 
-PayPal and OpenAI keys are required for a green PayPal health check and for later chat. The database and seed work without them. Get sandbox credentials from the [PayPal Developer Dashboard](https://developer.paypal.com/dashboard/).
+PayPal keys are required for a green PayPal health check. Chat uses Azure OpenAI (`AZURE_OPENAI_ENDPOINT` + `OPENAI_API_KEY` as the Azure api-key). The database and seed work without them. Get sandbox credentials from the [PayPal Developer Dashboard](https://developer.paypal.com/dashboard/).
 
 2. Install, seed, and start (use **two terminals** — `npm run dev` is a long-running process):
 
@@ -47,7 +47,7 @@ Use a **Sandbox Business** app for the merchant credentials. A **Sandbox Persona
 ## What exists now
 
 - Env validation (`lib/env.ts`) — fails fast with missing-variable names, never logs secrets
-- `/api/health` — env + SQLite ping + PayPal OAuth + list 1 invoice
+- `/api/health` — env + SQLite ping + PayPal OAuth + Azure OpenAI models ping
 - Drizzle schema, repositories, and `npm run db:seed`
 - `/api/chat` — streaming agent with `proposeInvoice` (local `DRAFT` only; no PayPal send)
 - `/` — chat UI and confirmation card

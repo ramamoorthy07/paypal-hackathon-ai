@@ -1,5 +1,4 @@
 import { convertToModelMessages, stepCountIs, streamText } from "ai";
-import { openai } from "@ai-sdk/openai";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { toUiMessages } from "@/lib/agent/messages";
@@ -7,6 +6,7 @@ import { agentSystemPrompt } from "@/lib/agent/prompt";
 import { chatStreamErrorMessage } from "@/lib/agent/stream-error";
 import { agentTools } from "@/lib/agent/tools";
 import { getEnv } from "@/lib/env";
+import { languageModel } from "@/lib/llm/provider";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -43,7 +43,7 @@ export async function POST(req: Request): Promise<Response> {
   const messages = await convertToModelMessages(toUiMessages(parsed.data.messages));
 
   const result = streamText({
-    model: openai("gpt-4o"),
+    model: languageModel(env),
     system: agentSystemPrompt({
       maxInvoiceUsd: env.MAX_INVOICE_USD,
       inrUsdRate: env.INR_USD_RATE,

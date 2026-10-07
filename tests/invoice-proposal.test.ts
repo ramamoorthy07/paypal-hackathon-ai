@@ -113,5 +113,8 @@ describe("chatStreamErrorMessage", () => {
       chatStreamErrorMessage(new Error("Incorrect API key provided: sk-secret")),
     ).toBe("OpenAI rejected the API key. Check OPENAI_API_KEY in .env.local.");
     expect(chatStreamErrorMessage(new Error("model overloaded"))).toBe("Chat failed. Try again.");
+    expect(
+      chatStreamErrorMessage(new Error("DeploymentNotFound: The API deployment does not exist")),
+    ).toBe("Azure OpenAI deployment was not found. Check AZURE_OPENAI_DEPLOYMENT.");
   });
 });
