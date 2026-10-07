@@ -26,41 +26,18 @@ export function ChatApp() {
     setInput("");
   }
 
-  const composer = (
-    <form
-      className="flex w-full gap-2"
-      onSubmit={(event) => {
-        event.preventDefault();
-        submit(input);
-      }}
-    >
-      <input
-        className="h-11 flex-1 rounded-xl border border-zinc-200 bg-white px-3 text-sm outline-none dark:border-zinc-700 dark:bg-zinc-900"
-        value={input}
-        disabled={busy}
-        placeholder="Paste a messy client chat…"
-        onChange={(event) => setInput(event.target.value)}
-      />
-      <button
-        type="submit"
-        disabled={busy || input.trim().length === 0}
-        className="inline-flex h-11 items-center rounded-xl bg-[#003087] px-4 text-sm font-medium text-white disabled:opacity-50"
-      >
-        Send
-      </button>
-    </form>
-  );
-
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col">
-      <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
-        <div className="flex w-full max-w-3xl flex-col gap-5">
+      <div
+        className={`min-h-0 flex-1 overflow-y-auto px-6 ${empty ? "flex items-center" : "py-6"}`}
+      >
+        <div className={`mx-auto flex w-full max-w-2xl flex-col ${empty ? "gap-6" : "gap-5"}`}>
           {empty ? (
             <>
-              <div>
+              <div className="text-center">
                 <h1 className="text-2xl font-semibold tracking-tight">New invoice</h1>
                 <p className="mt-2 text-sm leading-6 text-zinc-500">
-                  Paste finished work. Confirm in the card before PayPal is contacted.
+                  Paste finished work. Confirm before PayPal is contacted.
                 </p>
               </div>
               <div className="flex flex-col gap-2">
@@ -75,7 +52,6 @@ export function ChatApp() {
                   </button>
                 ))}
               </div>
-              {composer}
             </>
           ) : (
             messages.map((message) => (
@@ -122,11 +98,30 @@ export function ChatApp() {
         </div>
       </div>
 
-      {empty ? null : (
-        <div className="border-t border-zinc-200 px-6 py-4 dark:border-zinc-800">
-          <div className="w-full max-w-3xl">{composer}</div>
-        </div>
-      )}
+      <div className="shrink-0 border-t border-zinc-200 bg-zinc-50 px-6 py-4 dark:border-zinc-800 dark:bg-zinc-950">
+        <form
+          className="mx-auto flex w-full max-w-2xl gap-2"
+          onSubmit={(event) => {
+            event.preventDefault();
+            submit(input);
+          }}
+        >
+          <input
+            className="h-12 flex-1 rounded-xl border border-zinc-200 bg-white px-4 text-sm outline-none dark:border-zinc-700 dark:bg-zinc-900"
+            value={input}
+            disabled={busy}
+            placeholder="Paste a messy client chat…"
+            onChange={(event) => setInput(event.target.value)}
+          />
+          <button
+            type="submit"
+            disabled={busy || input.trim().length === 0}
+            className="inline-flex h-12 items-center rounded-xl bg-[#003087] px-5 text-sm font-medium text-white disabled:opacity-50"
+          >
+            Send
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
