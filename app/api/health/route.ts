@@ -30,7 +30,7 @@ export async function GET(): Promise<NextResponse> {
 
   let dbCheck: CheckResult;
   try {
-    const ping = pingDb();
+    const ping = await pingDb();
     dbCheck = {
       ok: true,
       invoiceCount: ping.invoiceCount,

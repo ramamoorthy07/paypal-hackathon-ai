@@ -3,7 +3,7 @@ import { getDb } from "@/lib/db";
 import { webhookEvents, type WebhookEventRow } from "@/lib/db/schema";
 
 export async function getWebhookEvent(eventId: string): Promise<WebhookEventRow | undefined> {
-  return getDb().select().from(webhookEvents).where(eq(webhookEvents.eventId, eventId)).get();
+  return (await getDb()).select().from(webhookEvents).where(eq(webhookEvents.eventId, eventId)).get();
 }
 
 /** Returns true if this event id was newly recorded. */
@@ -14,7 +14,7 @@ export async function recordWebhookEvent(eventId: string, type: string): Promise
   }
 
   try {
-    getDb()
+    (await getDb())
       .insert(webhookEvents)
       .values({
         eventId,

@@ -127,7 +127,7 @@ export async function seedDemoInvoices(): Promise<void> {
     },
   });
 
-  const ping = pingDb();
+  const ping = await pingDb();
   console.log(`Seeded demo invoices. Total invoices in DB: ${ping.invoiceCount}`);
 }
 

@@ -60,18 +60,18 @@ export async function insertInvoice(input: NewInvoice): Promise<InvoiceRow> {
     updatedAt: input.updatedAt ?? now,
   };
 
-  getDb().insert(invoices).values(row).run();
+  (await getDb()).insert(invoices).values(row).run();
   return row;
 }
 
 export async function getInvoiceById(id: string): Promise<InvoiceRow | undefined> {
-  return getDb().select().from(invoices).where(eq(invoices.id, id)).get();
+  return (await getDb()).select().from(invoices).where(eq(invoices.id, id)).get();
 }
 
 export async function getInvoiceByPaypalId(
   paypalInvoiceId: string,
 ): Promise<InvoiceRow | undefined> {
-  return getDb()
+  return (await getDb())
     .select()
     .from(invoices)
     .where(eq(invoices.paypalInvoiceId, paypalInvoiceId))
@@ -79,18 +79,18 @@ export async function getInvoiceByPaypalId(
 }
 
 export async function listInvoices(): Promise<InvoiceRow[]> {
-  return getDb().select().from(invoices).orderBy(desc(invoices.createdAt)).all();
+  return (await getDb()).select().from(invoices).orderBy(desc(invoices.createdAt)).all();
 }
 
 export async function listInvoicesByIds(ids: string[]): Promise<InvoiceRow[]> {
   if (ids.length === 0) {
     return [];
   }
-  return getDb().select().from(invoices).where(inArray(invoices.id, ids)).all();
+  return (await getDb()).select().from(invoices).where(inArray(invoices.id, ids)).all();
 }
 
 export async function updateInvoice(id: string, patch: InvoiceUpdate): Promise<InvoiceRow> {
-  getDb()
+  (await getDb())
     .update(invoices)
     .set({ ...patch, updatedAt: Date.now() })
     .where(eq(invoices.id, id))
@@ -106,5 +106,5 @@ export async function deleteInvoicesByIds(ids: string[]): Promise<void> {
   if (ids.length === 0) {
     return;
   }
-  getDb().delete(invoices).where(inArray(invoices.id, ids)).run();
+  (await getDb()).delete(invoices).where(inArray(invoices.id, ids)).run();
 }
