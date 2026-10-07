@@ -56,7 +56,7 @@ function overdueView(overrides: Partial<InvoiceView> = {}): InvoiceView {
     paidAt: null,
     hostedUrl: "https://www.sandbox.paypal.com/invoice/p/#INV2-TEST",
     lineItems: [{ name: "Landing page", quantity: 1, unitAmountCents: 75000 }],
-    createdBy: "seed",
+    createdBy: "agent",
     note: null,
     originalAmountCents: null,
     originalCurrency: null,

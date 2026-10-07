@@ -9,7 +9,6 @@
     "start:web": "next start --hostname 0.0.0.0",
     "lint": "eslint",
     "db:generate": "drizzle-kit generate",
-    "db:seed": "tsx scripts/seed.ts",
     "eval": "tsx scripts/eval.ts",
     "spike:tools": "tsx scripts/spike/list-toolkit-tools.ts",
     "spike:client-agent": "tsx scripts/spike/client-agent.ts",

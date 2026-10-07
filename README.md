@@ -22,6 +22,18 @@ chat → proposeInvoice (local DRAFT) → Confirm → PayPal share link
      → overdue AI note → PayPal remind (max 2/UTC day)
 ```
 
+## Layout
+
+```text
+app/           Next.js App Router (pages + API)
+components/    UI
+lib/           domain (agent, paypal, invoices, insights, db, access)
+scripts/       eval + spikes (no demo seed)
+tests/         unit tests — PayPal HTTP is stubbed so tests never send invoices
+docs/          evals, smoke, MCP, toolkit, spike
+postman/       collection (use a real draft id after chat)
+```
+
 ## Sponsors used
 
 - **AG Grid Community** — `/dashboard` earnings table, overdue/outstanding filters, row open
@@ -36,13 +48,12 @@ chat → proposeInvoice (local DRAFT) → Confirm → PayPal share link
 cp .env.example .env.local
 ```
 
-PayPal keys are required for a green PayPal health check. Chat uses Azure OpenAI (`AZURE_OPENAI_ENDPOINT` + `OPENAI_API_KEY` as the Azure api-key). The database and seed work without them.
+PayPal keys are required for a green PayPal health check. Chat uses Azure OpenAI (`AZURE_OPENAI_ENDPOINT` + `OPENAI_API_KEY` as the Azure api-key). The database starts empty; invoices appear only after chat → Confirm (or PayPal reconcile).
 
-2. Install, seed, and start (use **two terminals** — `npm run dev` is a long-running process):
+2. Install and start (use **two terminals** — `npm run dev` is a long-running process):
 
 ```bash
 npm install
-npm run db:seed
 npm run dev
 ```
 
@@ -52,9 +63,9 @@ npm run dev
 curl -sS http://localhost:3000/api/health | python3 -m json.tool
 ```
 
-Without PayPal/OpenAI keys the server still starts. Health will be HTTP 503 with `checks.env.ok: false` and `checks.db.ok: true` (`invoiceCount` at least 25 after seed). After you fill `.env.local`, restart `npm run dev` and expect `"ok": true`.
+Without PayPal/OpenAI keys the server still starts. Health will be HTTP 503 with `checks.env.ok: false` and `checks.db.ok: true` (`invoiceCount` 0 until you create invoices). After you fill `.env.local`, restart `npm run dev` and expect `"ok": true`.
 
-Seed ~25 **demo** invoices across 5 clients only when the database is empty. They are flagged `is_demo = true` and are not created in PayPal. Keep `seed-inv-draft` for Postman. Local default is libSQL file `data/paypilot.db` (gitignored). Production should use Turso (`DATABASE_URL` + `DATABASE_AUTH_TOKEN`) so data survives Render restarts.
+There is **no demo seed**. Local default is libSQL file `data/paypilot.db` (gitignored). Production should use Turso (`DATABASE_URL` + `DATABASE_AUTH_TOKEN`) so data survives Render restarts.
 
 ```bash
 npm test
@@ -80,8 +91,6 @@ Required env (no values in git):
 - `DEMO_ACCESS_CODE` (required in production for chat, confirm, and remind)
 - `MCP_BEARER_TOKEN` (required in production for `/api/mcp`)
 
-Optional: `SEED_ON_BOOT=true` (demo rows only when the database is empty, `is_demo = true`).
-
 After deploy, subscribe a PayPal sandbox webhook to `https://paypilot-docker.onrender.com/api/webhooks/paypal` for `INVOICING.INVOICE.PAID` and `INVOICING.INVOICE.CANCELLED`. Until then, invoice pages poll.
 
 Liveness is `GET /api/health/live` (no PayPal/LLM). Full checks stay on `/api/health`.
@@ -106,7 +115,7 @@ The route is not demo-gated. In production it returns 401 unless `Authorization:
 
 1. Import `postman/PayPilot.postman_collection.json` and `postman/PayPilot.postman_environment.json`.
 2. Set `baseUrl` to local or the Render URL.
-3. Confirm uses `draftInvoiceId` (default `seed-inv-draft`). Replace it with a chat-created draft before a real PayPal send.
+3. Set `draftInvoiceId` to a chat-created local DRAFT id before Confirm. There is no seeded draft.
 
 ## 3-minute video
 
@@ -116,7 +125,7 @@ Shooting script: [DEMO.md](DEMO.md).
 
 - Env validation (`lib/env.ts`) — fails fast with missing-variable names, never logs secrets
 - `/api/health` and `/api/health/live`
-- Drizzle schema, repositories, `npm run db:seed`
+- Drizzle schema and repositories (empty DB until a real invoice is saved)
 - `/api/chat` — streaming agent with `proposeInvoice` (local `DRAFT` only) plus read tools `getCashForecast`, `getClientRisk`, `listOverdue`
 - `/` — chat UI and confirmation card (live Frankfurter INR→USD, optional “Also email via PayPal”)
 - `POST /api/invoices/confirm` — PayPal draft + share-link send, then local `SENT`

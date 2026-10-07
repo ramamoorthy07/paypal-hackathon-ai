@@ -14,7 +14,7 @@ const now = Date.parse("2026-10-08T12:00:00.000Z");
 
 function overdueView(overrides: Partial<InvoiceView> = {}): InvoiceView {
   return {
-    id: "seed-inv-overdue",
+    id: "inv-overdue",
     paypalInvoiceId: "INV2-TEST",
     paypalInvoiceNumber: null,
     clientId: "c1",
@@ -26,7 +26,7 @@ function overdueView(overrides: Partial<InvoiceView> = {}): InvoiceView {
     paidAt: null,
     hostedUrl: "https://www.sandbox.paypal.com/invoice/p/#INV2-TEST",
     lineItems: [{ name: "Landing page", quantity: 1, unitAmountCents: 75000 }],
-    createdBy: "seed",
+    createdBy: "agent",
     note: null,
     originalAmountCents: null,
     originalCurrency: null,

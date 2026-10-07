@@ -12,8 +12,6 @@ services:
         value: production
       - key: PAYPAL_MODE
         value: sandbox
-      - key: SEED_ON_BOOT
-        value: "true"
       - key: PAYPAL_CLIENT_ID
         sync: false
       - key: PAYPAL_CLIENT_SECRET

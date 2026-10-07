@@ -32,7 +32,7 @@ Go to `/dashboard`. Show the 6-week cash forecast and the client risk grid. Clic
 
 ## 2:15–2:45 — Overdue reminder
 
-Open an overdue invoice that already has a PayPal id. Click **Send PayPal reminder**. Show the AI subject/note and the two-per-day cap. If you only have the local seed overdue row, say: reminders require a PayPal-sent invoice, same confirm-before-send rule.
+Open an overdue invoice that already has a PayPal id (from a prior Confirm, past due). Click **Send PayPal reminder**. Show the AI subject/note and the two-per-day cap. Reminders require a PayPal-sent invoice, same confirm-before-send rule.
 
 ## 2:45–3:00 — Close
 

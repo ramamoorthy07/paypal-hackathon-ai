@@ -13,13 +13,13 @@ Recorded **2026-10-08** against the running Render free Docker service. Chat/con
 | `GET /invoices` | **200** | |
 | `GET /unlock` | **404** | Live image is **behind** `origin/main` (GitHub has `/unlock` and `/api/mcp`) |
 | `POST /api/mcp` | **404** | Same: MCP is on GitHub main, not this Render deploy |
-| DB `invoiceCount` | **5** | Intelligence seed (~25) is not on this instance / Turso is not wired |
+| DB `invoiceCount` | **5** | Old live image; this branch does not seed fake invoices |
 | PayPal sample | `MARKED_AS_PAID` | Sandbox merchant is reachable. Status reflects later spike record-payments, not a buyer checkout |
 
 ## Gaps to fix on Render (ops, not code)
 
 1. Redeploy `paypilot-docker` from current `main` so `/unlock`, `/api/mcp`, dashboard insights, and the demo banner ship.
-2. Point `DATABASE_URL` + `DATABASE_AUTH_TOKEN` at Turso; optionally `SEED_ON_BOOT=true` on an empty DB.
+2. Point `DATABASE_URL` + `DATABASE_AUTH_TOKEN` at Turso. The app does not seed fake invoices.
 3. Set `DEMO_ACCESS_CODE` and `MCP_BEARER_TOKEN` in the Render dashboard.
 4. Confirm GitHub Action secrets `APP_URL`, `CRON_URL`, `CRON_SECRET`.
 

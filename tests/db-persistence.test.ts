@@ -3,7 +3,6 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { initDb, pingDb, resetDbForTests } from "@/lib/db";
-import { seedDemoInvoices } from "@/scripts/seed";
 
 describe("libsql persistence", () => {
   let previousUrl: string | undefined;
@@ -21,7 +20,7 @@ describe("libsql persistence", () => {
     }
   });
 
-  it("migrates a file database, seeds demo rows once, and flags them is_demo", async () => {
+  it("migrates a file database with zero invoices (no demo seed)", async () => {
     previousUrl = process.env.DATABASE_URL;
     dir = await mkdtemp(join(tmpdir(), "paypilot-db-"));
     process.env.DATABASE_URL = `file:${join(dir, "paypilot.db")}`;
@@ -35,14 +34,5 @@ describe("libsql persistence", () => {
       driver: "libsql",
       storage: "file",
     });
-
-    await seedDemoInvoices();
-    const seeded = await pingDb();
-    expect(seeded.invoiceCount).toBe(25);
-    expect(seeded.demoInvoiceCount).toBe(25);
-
-    await seedDemoInvoices();
-    const skipped = await pingDb();
-    expect(skipped.invoiceCount).toBe(25);
   });
 });
