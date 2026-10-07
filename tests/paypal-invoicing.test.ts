@@ -1,0 +1,117 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { resetEnvCache } from "@/lib/env";
+import { resetPaypalTokenCache } from "@/lib/paypal/client";
+import { createDraftInvoice, sendInvoiceAsShareLink } from "@/lib/paypal/invoicing";
+import { idempotencyKey } from "@/lib/paypal/errors";
+
+function jsonResponse(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+describe("PayPal invoicing REST", () => {
+  const fetchMock = vi.fn<typeof fetch>();
+
+  beforeEach(() => {
+    process.env.PAYPAL_CLIENT_ID = "test-client-id";
+    process.env.PAYPAL_CLIENT_SECRET = "test-client-secret";
+    process.env.OPENAI_API_KEY = "test-openai-key";
+    process.env.PAYPAL_MODE = "sandbox";
+    resetEnvCache();
+    resetPaypalTokenCache();
+    fetchMock.mockReset();
+    vi.stubGlobal("fetch", fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    resetEnvCache();
+    resetPaypalTokenCache();
+  });
+
+  it("sends PayPal-Request-Id derived from local invoice id on create", async () => {
+    fetchMock
+      .mockResolvedValueOnce(
+        jsonResponse({ access_token: "token-1", token_type: "Bearer", expires_in: 32400 }),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({ id: "INV2-TEST", status: "DRAFT", links: [] }, 201),
+      );
+
+    await createDraftInvoice({
+      localInvoiceId: "inv_abc",
+      recipientEmail: "buyer@example.com",
+      recipientName: "ABC Corp",
+      items: [{ name: "Website", quantity: 1, unitAmountCents: 48000 }],
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const createCall = fetchMock.mock.calls[1];
+    expect(createCall).toBeDefined();
+    const [url, init] = createCall as [string, RequestInit];
+    expect(String(url)).toContain("/v2/invoicing/invoices");
+    const headers = new Headers(init.headers);
+    expect(headers.get("PayPal-Request-Id")).toBe(idempotencyKey("inv_abc", "create"));
+    expect(headers.get("Authorization")).toBe("Bearer token-1");
+  });
+
+  it("sends a share-link invoice with send_to_recipient false", async () => {
+    fetchMock
+      .mockResolvedValueOnce(
+        jsonResponse({ access_token: "token-1", token_type: "Bearer", expires_in: 32400 }),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({
+          href: "https://www.sandbox.paypal.com/invoice/p/#INV2-TEST",
+          rel: "payer-view",
+          method: "GET",
+        }),
+      );
+
+    const result = await sendInvoiceAsShareLink({
+      paypalInvoiceId: "INV2-TEST",
+      localInvoiceId: "inv_abc",
+    });
+
+    expect(result.hostedUrl).toContain("invoice/p/");
+    const sendCall = fetchMock.mock.calls[1];
+    expect(sendCall).toBeDefined();
+    const [url, init] = sendCall as [string, RequestInit];
+    expect(String(url)).toContain("/v2/invoicing/invoices/INV2-TEST/send");
+    const headers = new Headers(init.headers);
+    expect(headers.get("PayPal-Request-Id")).toBe(idempotencyKey("inv_abc", "send"));
+    expect(JSON.parse(String(init.body))).toEqual({
+      send_to_recipient: false,
+      send_to_invoicer: false,
+    });
+  });
+
+  it("refreshes the access token once on 401 and retries the invoice call", async () => {
+    fetchMock
+      .mockResolvedValueOnce(
+        jsonResponse({ access_token: "token-old", token_type: "Bearer", expires_in: 32400 }),
+      )
+      .mockResolvedValueOnce(jsonResponse({ name: "AUTHENTICATION_FAILURE" }, 401))
+      .mockResolvedValueOnce(
+        jsonResponse({ access_token: "token-new", token_type: "Bearer", expires_in: 32400 }),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({ id: "INV2-RETRY", status: "DRAFT", links: [] }, 201),
+      );
+
+    const invoice = await createDraftInvoice({
+      localInvoiceId: "inv_retry",
+      recipientEmail: "buyer@example.com",
+      items: [{ name: "Logo", quantity: 1, unitAmountCents: 10000 }],
+    });
+
+    expect(invoice.id).toBe("INV2-RETRY");
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+    const retried = fetchMock.mock.calls[3];
+    expect(retried).toBeDefined();
+    const headers = new Headers((retried as [string, RequestInit])[1].headers);
+    expect(headers.get("Authorization")).toBe("Bearer token-new");
+  });
+});

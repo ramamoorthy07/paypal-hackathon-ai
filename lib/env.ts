@@ -78,6 +78,10 @@ export function warnIfEnvInvalid(options: { fatal: boolean }): void {
   console.error(message);
 }
 
+export function resetEnvCache(): void {
+  cached = undefined;
+}
+
 export function paypalApiBase(mode: Env["PAYPAL_MODE"] = getEnv().PAYPAL_MODE): string {
   return mode === "live"
     ? "https://api-m.paypal.com"

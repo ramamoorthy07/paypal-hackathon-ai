@@ -1,61 +1,15 @@
 import { z } from "zod";
 import { getEnv, paypalApiBase } from "@/lib/env";
+import { paypalErrorFromHttp, type PayPalError } from "@/lib/paypal/errors";
+import { paypalInvoiceListSchema } from "@/lib/paypal/schemas";
+
+export { PayPalError } from "@/lib/paypal/errors";
 
 const tokenResponseSchema = z.object({
   access_token: z.string().min(1),
   token_type: z.string().min(1),
   expires_in: z.number().int().positive(),
 });
-
-const paypalErrorDetailSchema = z.object({
-  field: z.string().optional(),
-  issue: z.string().optional(),
-  description: z.string().optional(),
-});
-
-const paypalErrorBodySchema = z.object({
-  name: z.string().optional(),
-  message: z.string().optional(),
-  debug_id: z.string().optional(),
-  details: z.array(paypalErrorDetailSchema).optional(),
-});
-
-const invoiceListSchema = z.object({
-  total_items: z.number().optional(),
-  total_pages: z.number().optional(),
-  items: z
-    .array(
-      z.object({
-        id: z.string().optional(),
-        status: z.string().optional(),
-      }),
-    )
-    .optional(),
-});
-
-export type PayPalErrorDetail = z.infer<typeof paypalErrorDetailSchema>;
-
-export class PayPalError extends Error {
-  readonly paypalName: string;
-  readonly status: number;
-  readonly details: PayPalErrorDetail[];
-  readonly debugId: string | undefined;
-
-  constructor(params: {
-    paypalName: string;
-    message: string;
-    status: number;
-    details?: PayPalErrorDetail[];
-    debugId?: string;
-  }) {
-    super(params.message);
-    this.name = "PayPalError";
-    this.paypalName = params.paypalName;
-    this.status = params.status;
-    this.details = params.details ?? [];
-    this.debugId = params.debugId;
-  }
-}
 
 type CachedToken = {
   accessToken: string;
@@ -64,43 +18,6 @@ type CachedToken = {
 
 let cachedToken: CachedToken | undefined;
 const TOKEN_EXPIRY_BUFFER_MS = 60_000;
-
-function userFacingPaypalMessage(paypalName: string, fallback: string): string {
-  switch (paypalName) {
-    case "AUTHENTICATION_FAILURE":
-    case "NOT_AUTHORIZED":
-      return "PayPal authentication failed. Check PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET.";
-    case "INVALID_REQUEST":
-      return "PayPal rejected the request. Check invoice fields and try again.";
-    case "UNPROCESSABLE_ENTITY":
-      return "PayPal could not process this invoice. One or more fields are invalid.";
-    case "INSTRUMENT_DECLINED":
-      return "The payment method was declined. Try a different sandbox buyer funding source.";
-    default:
-      return fallback;
-  }
-}
-
-async function readPaypalError(response: Response): Promise<PayPalError> {
-  const text = await response.text();
-  const parsed = paypalErrorBodySchema.safeParse(safeJson(text));
-  const paypalName = parsed.success
-    ? (parsed.data.name ?? `HTTP_${response.status}`)
-    : `HTTP_${response.status}`;
-  const rawMessage =
-    parsed.success && parsed.data.message
-      ? parsed.data.message
-      : text.slice(0, 200) || response.statusText;
-  const details = parsed.success ? (parsed.data.details ?? []) : [];
-
-  return new PayPalError({
-    paypalName,
-    message: userFacingPaypalMessage(paypalName, rawMessage),
-    status: response.status,
-    details,
-    debugId: parsed.success ? parsed.data.debug_id : undefined,
-  });
-}
 
 function safeJson(text: string): unknown {
   if (!text) {
@@ -113,7 +30,12 @@ function safeJson(text: string): unknown {
   }
 }
 
-function clearTokenCache(): void {
+async function readPaypalError(response: Response): Promise<PayPalError> {
+  const text = await response.text();
+  return paypalErrorFromHttp(response.status, safeJson(text), text);
+}
+
+export function resetPaypalTokenCache(): void {
   cachedToken = undefined;
 }
 
@@ -139,11 +61,7 @@ async function fetchAccessToken(): Promise<string> {
 
   const parsed = tokenResponseSchema.safeParse(await response.json());
   if (!parsed.success) {
-    throw new PayPalError({
-      paypalName: "INVALID_TOKEN_RESPONSE",
-      message: "PayPal token response was missing expected fields.",
-      status: response.status,
-    });
+    throw paypalErrorFromHttp(response.status, { name: "INVALID_TOKEN_RESPONSE" });
   }
 
   cachedToken = {
@@ -162,24 +80,29 @@ export async function getAccessToken(): Promise<string> {
   return fetchAccessToken();
 }
 
-export async function paypalFetch<T>(
+export type PaypalRequestInit = RequestInit & {
+  idempotencyKey?: string;
+};
+
+export async function paypalRequest(
   path: string,
-  schema: z.ZodType<T>,
-  init: RequestInit & { idempotencyKey?: string } = {},
-): Promise<T> {
+  init: PaypalRequestInit = {},
+): Promise<Response> {
   const env = getEnv();
   const { idempotencyKey, headers: initHeaders, ...rest } = init;
   const method = (rest.method ?? "GET").toUpperCase();
 
-  const send = async (retried: boolean): Promise<T> => {
+  const send = async (retried: boolean): Promise<Response> => {
     const accessToken = await getAccessToken();
     const headers = new Headers(initHeaders);
     headers.set("Authorization", `Bearer ${accessToken}`);
-    headers.set("Accept", "application/json");
+    if (!headers.has("Accept")) {
+      headers.set("Accept", "application/json");
+    }
     if (method !== "GET" && !headers.has("Content-Type")) {
       headers.set("Content-Type", "application/json");
     }
-    if (method === "POST" && idempotencyKey) {
+    if ((method === "POST" || method === "PUT" || method === "PATCH") && idempotencyKey) {
       headers.set("PayPal-Request-Id", idempotencyKey);
     }
 
@@ -190,23 +113,33 @@ export async function paypalFetch<T>(
     });
 
     if (response.status === 401 && !retried) {
-      clearTokenCache();
+      resetPaypalTokenCache();
       return send(true);
     }
 
-    if (!response.ok) {
-      throw await readPaypalError(response);
-    }
-
-    if (response.status === 204) {
-      return schema.parse(undefined);
-    }
-
-    const json: unknown = await response.json();
-    return schema.parse(json);
+    return response;
   };
 
   return send(false);
+}
+
+export async function paypalFetch<T>(
+  path: string,
+  schema: z.ZodType<T>,
+  init: PaypalRequestInit = {},
+): Promise<T> {
+  const response = await paypalRequest(path, init);
+
+  if (!response.ok) {
+    throw await readPaypalError(response);
+  }
+
+  const text = await response.text();
+  if (response.status === 204 || text.trim().length === 0) {
+    return schema.parse(undefined);
+  }
+
+  return schema.parse(JSON.parse(text) as unknown);
 }
 
 export async function pingPaypalInvoices(): Promise<{
@@ -215,7 +148,7 @@ export async function pingPaypalInvoices(): Promise<{
 }> {
   const listed = await paypalFetch(
     "/v2/invoicing/invoices?page=1&page_size=1&total_required=true",
-    invoiceListSchema,
+    paypalInvoiceListSchema,
     { method: "GET" },
   );
 

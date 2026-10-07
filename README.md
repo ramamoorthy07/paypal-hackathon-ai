@@ -36,6 +36,12 @@ npm run db:seed
 
 `checks.db.invoiceCount` should be at least 5 after seeding. The SQLite file lives at `data/paypilot.db` and is gitignored.
 
+Unit tests (PayPal HTTP is mocked; they do not create sandbox invoices):
+
+```bash
+npm test
+```
+
 Use a **Sandbox Business** app for the merchant credentials. A **Sandbox Personal** account is the buyer for later invoice payments.
 
 ## What exists now
