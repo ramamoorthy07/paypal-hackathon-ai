@@ -15,10 +15,14 @@ const jailbreakNote = [
 
 describe("prompt injection", () => {
   it("does not expose PayPal write tools to the model", () => {
-    expect(Object.keys(agentTools)).toEqual(["proposeInvoice"]);
+    expect(Object.keys(agentTools).sort()).toEqual(
+      ["getCashForecast", "getClientRisk", "listOverdue", "proposeInvoice"].sort(),
+    );
     expect(agentTools).not.toHaveProperty("confirmInvoice");
     expect(agentTools).not.toHaveProperty("sendInvoice");
     expect(agentTools).not.toHaveProperty("remindInvoice");
+    expect(agentTools).not.toHaveProperty("create_invoice");
+    expect(agentTools).not.toHaveProperty("send_invoice");
   });
 
   it("keeps HITL and no-PayPal-write rules in the system prompt", () => {

@@ -102,8 +102,10 @@ describe("evaluateProposal", () => {
 });
 
 describe("agent tools", () => {
-  it("exposes only proposeInvoice to the model", () => {
-    expect(Object.keys(agentTools)).toEqual(["proposeInvoice"]);
+  it("exposes proposeInvoice plus read-only cash/risk tools", () => {
+    expect(Object.keys(agentTools).sort()).toEqual(
+      ["getCashForecast", "getClientRisk", "listOverdue", "proposeInvoice"].sort(),
+    );
   });
 });
 

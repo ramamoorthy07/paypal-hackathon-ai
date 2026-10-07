@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { tool } from "ai";
 import { evaluateProposal } from "@/lib/agent/propose";
+import { getCashForecast, getClientRisk, listOverdue } from "@/lib/agent/read-tools";
 import { invoiceProposalSchema } from "@/lib/agent/schema";
 import { insertAuditLog } from "@/lib/db/repositories/audit-log";
 import { upsertClientByEmail } from "@/lib/db/repositories/clients";
@@ -76,4 +77,10 @@ export const proposeInvoice = tool({
 
 export const agentTools = {
   proposeInvoice,
+  getCashForecast,
+  getClientRisk,
+  listOverdue,
 };
+
+export const AGENT_WRITE_TOOL_NAMES = ["proposeInvoice"] as const;
+export const AGENT_READ_TOOL_NAMES = ["getCashForecast", "getClientRisk", "listOverdue"] as const;
