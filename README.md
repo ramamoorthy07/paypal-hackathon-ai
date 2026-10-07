@@ -4,7 +4,7 @@ AI freelancer payment agent for the PayPal AI Hackathon. Talk in chat, confirm a
 
 **PayPal is the payment rail** (Invoicing REST, share-link send, webhooks, QR, remind). **AI is the operator** (parse messy chat, draft a local invoice, write a monthly briefing, compose reminder copy, explain risk). The model never creates or sends a PayPal invoice.
 
-Parser evals: **40/40** on `npm run eval` ([docs/EVALS.md](docs/EVALS.md)).
+Parser evals: golden **40/40**; held-out measured separately in [docs/EVALS.md](docs/EVALS.md) (`npm run eval`).
 
 ```text
 chat → proposeInvoice (local DRAFT) → Confirm → PayPal share link

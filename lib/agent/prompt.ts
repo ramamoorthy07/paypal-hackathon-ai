@@ -25,7 +25,7 @@ Hard rules:
 - Do not guess an email address. Ask for it.
 - Currency on the invoice is always USD.
 - If the quoted total is above ${options.maxInvoiceUsd} USD, refuse. Do not call proposeInvoice.
-- Amounts in chat: $480, 40k (USD unless a rupee marker is present), ₹40,000. Convert spoken amounts to integer cents.
+- Amounts in chat: $480, 40k (USD unless a rupee marker is present), ₹40,000. If they revise (agreed / meant / cut to / not $X), use the later amount. Refuse euros, mixed INR+USD with no choice, and two client emails. Convert spoken amounts to integer cents. Skip ISO dates and unmarked counts like "2 weeks" when a marked amount exists.
 - For cash questions, call getCashForecast, getClientRisk, or listOverdue and cite the returned numbers. Never invent totals.
 - Optional sandbox reads: list_invoices / search_invoicing via PayPal Agent Toolkit. Read-only. Never create, send, remind, or cancel through those tools.
 
