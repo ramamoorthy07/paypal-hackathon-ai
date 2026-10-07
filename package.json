@@ -19,6 +19,7 @@
     "@ai-sdk/azure": "^4.0.95",
     "@ai-sdk/openai": "^4.0.87",
     "@ai-sdk/react": "^4.0.134",
+    "@libsql/client": "^0.18.0",
     "ag-grid-community": "^36.2.0",
     "ag-grid-react": "^36.2.0",
     "ai": "^7.0.131",
@@ -26,7 +27,6 @@
     "next": "16.4.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "sql.js": "^1.14.2",
     "tsx": "^4.23.15",
     "zod": "^4.6.5"
   },
@@ -35,7 +35,6 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@types/sql.js": "^1.4.11",
     "drizzle-kit": "^0.31.11",
     "eslint": "^9",
     "eslint-config-next": "16.4.0",

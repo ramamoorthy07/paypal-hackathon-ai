@@ -18,12 +18,14 @@ export async function insertReminder(input: NewReminder): Promise<ReminderRow> {
     note: input.note,
     sentAt: input.sentAt ?? Date.now(),
   };
-  (await getDb()).insert(reminders).values(row).run();
+  const database = await getDb();
+  await database.insert(reminders).values(row).run();
   return row;
 }
 
 export async function listRemindersForInvoice(invoiceId: string): Promise<ReminderRow[]> {
-  return (await getDb())
+  const database = await getDb();
+  return database
     .select()
     .from(reminders)
     .where(eq(reminders.invoiceId, invoiceId))
@@ -32,7 +34,8 @@ export async function listRemindersForInvoice(invoiceId: string): Promise<Remind
 }
 
 export async function countRemindersSince(invoiceId: string, sinceMs: number): Promise<number> {
-  const row = (await getDb())
+  const database = await getDb();
+  const row = await database
     .select({ value: count() })
     .from(reminders)
     .where(and(eq(reminders.invoiceId, invoiceId), gte(reminders.sentAt, sinceMs)))
@@ -43,6 +46,6 @@ export async function countRemindersSince(invoiceId: string, sinceMs: number): P
 export async function deleteRemindersForInvoices(invoiceIds: string[]): Promise<void> {
   const database = await getDb();
   for (const invoiceId of invoiceIds) {
-    database.delete(reminders).where(eq(reminders.invoiceId, invoiceId)).run();
+    await database.delete(reminders).where(eq(reminders.invoiceId, invoiceId)).run();
   }
 }

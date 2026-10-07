@@ -21,10 +21,12 @@ export async function insertAuditLog(input: NewAuditLog): Promise<AuditLogRow> {
     invoiceId: input.invoiceId ?? null,
     payload: redactPayload(input.payload),
   };
-  (await getDb()).insert(auditLog).values(row).run();
+  const database = await getDb();
+  await database.insert(auditLog).values(row).run();
   return row;
 }
 
 export async function listRecentAuditLogs(limit = 50): Promise<AuditLogRow[]> {
-  return (await getDb()).select().from(auditLog).orderBy(desc(auditLog.timestamp)).limit(limit).all();
+  const database = await getDb();
+  return database.select().from(auditLog).orderBy(desc(auditLog.timestamp)).limit(limit).all();
 }

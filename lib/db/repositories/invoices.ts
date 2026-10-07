@@ -26,6 +26,7 @@ export type NewInvoice = {
   originalAmountCents?: number | null;
   originalCurrency?: string | null;
   fxRate?: string | null;
+  isDemo?: boolean;
   createdAt?: number;
   updatedAt?: number;
 };
@@ -56,22 +57,26 @@ export async function insertInvoice(input: NewInvoice): Promise<InvoiceRow> {
     originalAmountCents: input.originalAmountCents ?? null,
     originalCurrency: input.originalCurrency ?? null,
     fxRate: input.fxRate ?? null,
+    isDemo: input.isDemo ?? false,
     createdAt: input.createdAt ?? now,
     updatedAt: input.updatedAt ?? now,
   };
 
-  (await getDb()).insert(invoices).values(row).run();
+  const database = await getDb();
+  await database.insert(invoices).values(row).run();
   return row;
 }
 
 export async function getInvoiceById(id: string): Promise<InvoiceRow | undefined> {
-  return (await getDb()).select().from(invoices).where(eq(invoices.id, id)).get();
+  const database = await getDb();
+  return database.select().from(invoices).where(eq(invoices.id, id)).get();
 }
 
 export async function getInvoiceByPaypalId(
   paypalInvoiceId: string,
 ): Promise<InvoiceRow | undefined> {
-  return (await getDb())
+  const database = await getDb();
+  return database
     .select()
     .from(invoices)
     .where(eq(invoices.paypalInvoiceId, paypalInvoiceId))
@@ -79,18 +84,21 @@ export async function getInvoiceByPaypalId(
 }
 
 export async function listInvoices(): Promise<InvoiceRow[]> {
-  return (await getDb()).select().from(invoices).orderBy(desc(invoices.createdAt)).all();
+  const database = await getDb();
+  return database.select().from(invoices).orderBy(desc(invoices.createdAt)).all();
 }
 
 export async function listInvoicesByIds(ids: string[]): Promise<InvoiceRow[]> {
   if (ids.length === 0) {
     return [];
   }
-  return (await getDb()).select().from(invoices).where(inArray(invoices.id, ids)).all();
+  const database = await getDb();
+  return database.select().from(invoices).where(inArray(invoices.id, ids)).all();
 }
 
 export async function updateInvoice(id: string, patch: InvoiceUpdate): Promise<InvoiceRow> {
-  (await getDb())
+  const database = await getDb();
+  await database
     .update(invoices)
     .set({ ...patch, updatedAt: Date.now() })
     .where(eq(invoices.id, id))
@@ -106,5 +114,6 @@ export async function deleteInvoicesByIds(ids: string[]): Promise<void> {
   if (ids.length === 0) {
     return;
   }
-  (await getDb()).delete(invoices).where(inArray(invoices.id, ids)).run();
+  const database = await getDb();
+  await database.delete(invoices).where(inArray(invoices.id, ids)).run();
 }

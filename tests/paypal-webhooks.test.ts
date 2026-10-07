@@ -54,6 +54,7 @@ const local: InvoiceRow = {
   originalAmountCents: null,
   originalCurrency: null,
   fxRate: null,
+  isDemo: false,
   createdAt: 1,
   updatedAt: 1,
 };

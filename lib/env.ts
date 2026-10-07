@@ -22,6 +22,7 @@ const envSchema = z.object({
   CRON_SECRET: z.preprocess(emptyToUndefined, z.string().trim().min(1).optional()),
   MAX_INVOICE_USD: z.coerce.number().positive().default(5000),
   DATABASE_URL: z.string().trim().min(1).default("file:./data/paypilot.db"),
+  DATABASE_AUTH_TOKEN: z.preprocess(emptyToUndefined, z.string().trim().min(1).optional()),
   INR_USD_RATE: z.coerce.number().positive().default(0.012),
 });
 
@@ -54,6 +55,7 @@ function readEnv() {
     CRON_SECRET: process.env.CRON_SECRET,
     MAX_INVOICE_USD: process.env.MAX_INVOICE_USD,
     DATABASE_URL: process.env.DATABASE_URL,
+    DATABASE_AUTH_TOKEN: process.env.DATABASE_AUTH_TOKEN,
     INR_USD_RATE: process.env.INR_USD_RATE,
   });
 }

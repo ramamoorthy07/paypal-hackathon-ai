@@ -34,6 +34,9 @@ export async function GET(): Promise<NextResponse> {
     dbCheck = {
       ok: true,
       invoiceCount: ping.invoiceCount,
+      demoInvoiceCount: ping.demoInvoiceCount,
+      driver: ping.driver,
+      storage: ping.storage,
     };
   } catch (error) {
     dbCheck = {

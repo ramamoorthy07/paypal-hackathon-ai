@@ -23,6 +23,14 @@ function line(name: string, unitAmountCents: number, description?: string): Line
 
 export async function seedDemoInvoices(): Promise<void> {
   loadEnvConfig(process.cwd());
+  const pingBefore = await pingDb();
+  if (pingBefore.invoiceCount > 0) {
+    console.log(
+      `Seed skipped; database already has ${pingBefore.invoiceCount} invoice(s).`,
+    );
+    return;
+  }
+
   const now = Date.now();
 
   await deleteRemindersForInvoices([...seedInvoiceIds]);
@@ -32,16 +40,19 @@ export async function seedDemoInvoices(): Promise<void> {
     id: "seed-client-abc",
     name: "ABC Corp",
     email: "buyer@personal.example.com",
+    isDemo: true,
   });
   const acme = await upsertClientByEmail({
     id: "seed-client-acme",
     name: "Acme Studio",
     email: "acme@example.com",
+    isDemo: true,
   });
   const north = await upsertClientByEmail({
     id: "seed-client-north",
     name: "Northwind LLC",
     email: "ap@northwind.example",
+    isDemo: true,
   });
 
   await insertInvoice({
@@ -56,6 +67,7 @@ export async function seedDemoInvoices(): Promise<void> {
     hostedUrl: null,
     lineItems: line("Website redesign", 48000, "Marketing site rebuild"),
     createdBy: "seed",
+    isDemo: true,
     note: "Paid seed invoice",
   });
 
@@ -70,6 +82,7 @@ export async function seedDemoInvoices(): Promise<void> {
     hostedUrl: null,
     lineItems: line("Brand identity", 120000, "Logo and type system"),
     createdBy: "seed",
+    isDemo: true,
     note: "Outstanding, not yet due",
   });
 
@@ -84,6 +97,7 @@ export async function seedDemoInvoices(): Promise<void> {
     hostedUrl: null,
     lineItems: line("Landing page", 75000),
     createdBy: "seed",
+    isDemo: true,
     note: "Overdue: SENT with a past due date",
   });
 
@@ -98,6 +112,7 @@ export async function seedDemoInvoices(): Promise<void> {
     hostedUrl: null,
     lineItems: line("Discovery workshop", 25000),
     createdBy: "seed",
+    isDemo: true,
     note: "Cancelled seed invoice",
   });
 
@@ -111,6 +126,7 @@ export async function seedDemoInvoices(): Promise<void> {
     hostedUrl: null,
     lineItems: line("Retainer hours", 40000, "Unused draft"),
     createdBy: "seed",
+    isDemo: true,
     originalAmountCents: 3_333_333,
     originalCurrency: "INR",
     fxRate: "0.012",
@@ -123,7 +139,7 @@ export async function seedDemoInvoices(): Promise<void> {
     action: "seed.demo_invoices",
     payload: {
       invoiceIds: seedInvoiceIds,
-      note: "Local demo rows only; paypal_invoice_id is null",
+      note: "Demo rows only (is_demo=true); paypal_invoice_id is null",
     },
   });
 

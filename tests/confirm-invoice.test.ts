@@ -37,6 +37,7 @@ const client: ClientRow = {
   id: "client-1",
   name: "Acme Studio",
   email: "acme@example.com",
+  isDemo: false,
   createdAt: 1,
 };
 
@@ -59,6 +60,7 @@ function draft(overrides: Partial<InvoiceRow> = {}): InvoiceRow {
     originalAmountCents: null,
     originalCurrency: null,
     fxRate: null,
+    isDemo: false,
     createdAt: 1,
     updatedAt: 1,
     ...overrides,

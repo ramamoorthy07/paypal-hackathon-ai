@@ -42,7 +42,7 @@ curl -sS http://localhost:3000/api/health | python3 -m json.tool
 
 Without PayPal/OpenAI keys the server still starts. Health will be HTTP 503 with `checks.env.ok: false` and `checks.db.ok: true` (`invoiceCount` at least 5 after seed). After you fill `.env.local`, restart `npm run dev` and expect `"ok": true`.
 
-Seed five **local** demo invoices (paid, sent, overdue, cancelled, draft). These are not created in PayPal. The SQLite file is `data/paypilot.db` (gitignored).
+Seed five **demo** invoices (paid, sent, overdue, cancelled, draft) only when the database is empty. They are flagged `is_demo = true` and are not created in PayPal. Local default is libSQL file `data/paypilot.db` (gitignored). Production should use Turso (`DATABASE_URL` + `DATABASE_AUTH_TOKEN`) so data survives Render restarts.
 
 ```bash
 npm test
@@ -57,9 +57,9 @@ Use a **Sandbox Business** app for merchant credentials. A **Sandbox Personal** 
 Blueprint: [`render.yaml`](render.yaml).
 
 1. New → Blueprint, connect [this GitHub repo](https://github.com/ramamoorthy07/paypal-hackathon-ai).
-2. Set `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `OPENAI_API_KEY`, `AZURE_OPENAI_ENDPOINT`. Optional: `PAYPAL_WEBHOOK_ID`.
+2. Set `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `OPENAI_API_KEY`, `AZURE_OPENAI_ENDPOINT`, `DATABASE_URL`, and `DATABASE_AUTH_TOKEN` (Turso). Optional: `PAYPAL_WEBHOOK_ID`.
 3. After the first deploy, subscribe a PayPal sandbox webhook to `https://<service>.onrender.com/api/webhooks/paypal` for `INVOICING.INVOICE.PAID` and `INVOICING.INVOICE.CANCELLED`. Until then, invoice pages poll.
-4. `SEED_ON_BOOT=true` loads demo rows only when the database is empty. `CRON_SECRET` is generated; the cron job posts to `/api/cron/reminders` twice daily UTC.
+4. `SEED_ON_BOOT=true` loads demo rows only when the database is empty (`is_demo = true`). `CRON_SECRET` is generated; the cron job posts to `/api/cron/reminders` twice daily UTC.
 
 Liveness for Render is `GET /api/health/live` (no PayPal/LLM). Full checks stay on `/api/health`.
 

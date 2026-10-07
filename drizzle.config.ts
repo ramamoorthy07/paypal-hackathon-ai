@@ -1,10 +1,11 @@
 import { defineConfig } from "drizzle-kit";
 
 export default defineConfig({
-  dialect: "sqlite",
+  dialect: "turso",
   schema: "./lib/db/schema.ts",
   out: "./drizzle",
   dbCredentials: {
-    url: "./data/paypilot.db",
+    url: process.env.DATABASE_URL ?? "file:./data/paypilot.db",
+    authToken: process.env.DATABASE_AUTH_TOKEN,
   },
 });

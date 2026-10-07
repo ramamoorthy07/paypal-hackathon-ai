@@ -31,6 +31,7 @@ function overdueView(overrides: Partial<InvoiceView> = {}): InvoiceView {
     originalAmountCents: null,
     originalCurrency: null,
     fxRate: null,
+    isDemo: false,
     createdAt: now,
     updatedAt: now,
     clientName: "Northwind LLC",
