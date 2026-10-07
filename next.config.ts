@@ -1,9 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  cacheComponents: true,
-  partialPrefetching: true,
+  // This app is request-dynamic (health, chat, webhooks). Cache Components
+  // rejects route segment config like `dynamic = "force-dynamic"`.
   serverExternalPackages: ["better-sqlite3"],
   turbopack: {
     rules: {
