@@ -79,6 +79,13 @@ function loadExistingFile(filePath: string): Uint8Array | undefined {
   return bytes.length > 0 ? new Uint8Array(bytes) : undefined;
 }
 
+function readArrayBuffer(filePath: string): ArrayBuffer {
+  const bytes = readFileSync(filePath);
+  const buffer = new ArrayBuffer(bytes.byteLength);
+  new Uint8Array(buffer).set(bytes);
+  return buffer;
+}
+
 export async function initDb(): Promise<AppDatabase> {
   if (g.__paypilotDb) {
     return g.__paypilotDb;
@@ -91,7 +98,7 @@ export async function initDb(): Promise<AppDatabase> {
       const initSqlJs = requireFromApp("sql.js") as typeof import("sql.js");
       const wasmPath = requireFromApp.resolve("sql.js/dist/sql-wasm.wasm");
       const SQL = await initSqlJs({
-        wasmBinary: readFileSync(wasmPath),
+        wasmBinary: readArrayBuffer(wasmPath),
       });
 
       mkdirSync(dirname(filePath), { recursive: true });
