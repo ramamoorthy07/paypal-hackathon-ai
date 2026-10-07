@@ -218,12 +218,46 @@ export async function generateInvoiceQr(input: {
 }
 
 export async function listPaypalInvoices(page = 1, pageSize = 20): Promise<PaypalInvoiceList> {
+  const size = Math.min(100, Math.max(1, pageSize));
   const params = new URLSearchParams({
     page: String(page),
-    page_size: String(pageSize),
+    page_size: String(size),
     total_required: "true",
   });
   return paypalFetch(`/v2/invoicing/invoices?${params.toString()}`, paypalInvoiceListSchema, {
     method: "GET",
   });
+}
+
+const LIST_PAGE_SIZE = 100;
+const LIST_MAX_PAGES = 10;
+
+/** Pages GET /v2/invoicing/invoices (page_size 1–100). Caps at 1000 invoices. */
+export async function listAllPaypalInvoices(): Promise<PaypalInvoice[]> {
+  const collected: PaypalInvoice[] = [];
+  let page = 1;
+  let totalPages = 1;
+
+  while (page <= totalPages && page <= LIST_MAX_PAGES) {
+    const listed = await listPaypalInvoices(page, LIST_PAGE_SIZE);
+    totalPages = listed.total_pages ?? page;
+    for (const item of listed.items ?? []) {
+      if (item.id && item.status) {
+        collected.push({
+          id: item.id,
+          status: item.status,
+          detail: item.detail,
+          amount: item.amount,
+          primary_recipients: item.primary_recipients,
+          links: item.links,
+        });
+      }
+    }
+    if (!listed.items || listed.items.length === 0) {
+      break;
+    }
+    page += 1;
+  }
+
+  return collected;
 }

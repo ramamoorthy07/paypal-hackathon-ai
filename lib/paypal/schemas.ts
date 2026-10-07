@@ -13,6 +13,11 @@ export const paypalInvoiceSchema = z.object({
     .object({
       invoice_number: z.string().optional(),
       currency_code: z.string().optional(),
+      payment_term: z
+        .object({
+          due_date: z.string().optional(),
+        })
+        .optional(),
     })
     .optional(),
   amount: z
@@ -20,6 +25,23 @@ export const paypalInvoiceSchema = z.object({
       currency_code: z.string().optional(),
       value: z.string().optional(),
     })
+    .optional(),
+  primary_recipients: z
+    .array(
+      z.object({
+        billing_info: z
+          .object({
+            email_address: z.string().optional(),
+            name: z
+              .object({
+                given_name: z.string().optional(),
+                surname: z.string().optional(),
+              })
+              .optional(),
+          })
+          .optional(),
+      }),
+    )
     .optional(),
   links: z.array(paypalLinkSchema).optional(),
 });

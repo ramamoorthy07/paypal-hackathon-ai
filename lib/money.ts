@@ -18,6 +18,17 @@ export function centsToAmountString(cents: number): string {
   return (cents / 100).toFixed(2);
 }
 
+/** PayPal `amount.value` like `74.21` → integer cents. Rejects more than 2 decimal places. */
+export function paypalMajorToCents(value: string): number | null {
+  const trimmed = value.trim();
+  if (!/^\d+(\.\d{1,2})?$/.test(trimmed)) {
+    return null;
+  }
+  const [whole = "0", fraction = ""] = trimmed.split(".");
+  const frac = `${fraction}00`.slice(0, 2);
+  return Number(whole) * 100 + Number(frac);
+}
+
 export function isoDateFromMs(ms: number): string {
   return new Date(ms).toISOString().slice(0, 10);
 }

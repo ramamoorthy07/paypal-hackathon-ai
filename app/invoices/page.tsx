@@ -1,5 +1,6 @@
 import { AppHeader } from "@/components/app-header";
 import { InvoiceOpenRefresh } from "@/components/invoice-open-refresh";
+import { PaypalReconcileButton } from "@/components/paypal-reconcile-button";
 import { StatusBadge } from "@/components/status-badge";
 import { listInvoiceViews, type InvoiceView } from "@/lib/invoices/views";
 import { centsToAmountString, isoDateFromMs } from "@/lib/money";
@@ -63,7 +64,10 @@ export default async function InvoicesPage({
               );
             })}
           </div>
-          <InvoiceOpenRefresh ids={openIds} />
+          <div className="flex flex-wrap items-center gap-3">
+            <PaypalReconcileButton />
+            <InvoiceOpenRefresh ids={openIds} />
+          </div>
         </div>
 
         <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
@@ -91,7 +95,9 @@ export default async function InvoicesPage({
         </div>
         <p className="text-xs text-zinc-500">
           OVERDUE is derived from SENT invoices past their due date. Webhooks update PAID and
-          CANCELLED; Refresh asks PayPal when a webhook cannot reach this machine.
+          CANCELLED. Sync from PayPal lists sandbox invoices and upserts by paypal_invoice_id;
+          illegal status moves are ignored. Refresh asks PayPal for open rows when a webhook
+          cannot reach this machine.
         </p>
       </main>
     </div>

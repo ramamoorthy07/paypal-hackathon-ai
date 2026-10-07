@@ -4,6 +4,7 @@ import { resetPaypalTokenCache } from "@/lib/paypal/client";
 import {
   createDraftInvoice,
   invoiceIdFromHref,
+  listAllPaypalInvoices,
   remindInvoice,
   sendInvoiceAsShareLink,
 } from "@/lib/paypal/invoicing";
@@ -178,5 +179,35 @@ describe("PayPal invoicing REST", () => {
       send_to_invoicer: false,
       send_to_recipient: true,
     });
+  });
+
+  it("pages GET /v2/invoicing/invoices at page_size 100", async () => {
+    fetchMock
+      .mockResolvedValueOnce(
+        jsonResponse({ access_token: "token-1", token_type: "Bearer", expires_in: 32400 }),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({
+          total_items: 2,
+          total_pages: 2,
+          items: [{ id: "INV2-A", status: "SENT" }],
+        }),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({
+          total_items: 2,
+          total_pages: 2,
+          items: [{ id: "INV2-B", status: "PAID" }],
+        }),
+      );
+
+    const invoices = await listAllPaypalInvoices();
+
+    expect(invoices.map((row) => row.id)).toEqual(["INV2-A", "INV2-B"]);
+    const firstList = fetchMock.mock.calls[1];
+    expect(firstList).toBeDefined();
+    expect(String((firstList as [string, RequestInit])[0])).toContain("page=1");
+    expect(String((firstList as [string, RequestInit])[0])).toContain("page_size=100");
+    expect(String((fetchMock.mock.calls[2] as [string, RequestInit])[0])).toContain("page=2");
   });
 });

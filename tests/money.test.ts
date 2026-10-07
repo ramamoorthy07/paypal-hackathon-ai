@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { centsToAmountString, parseChatAmount, usdCentsFromInrPaise } from "@/lib/money";
+import { centsToAmountString, parseChatAmount, paypalMajorToCents, usdCentsFromInrPaise } from "@/lib/money";
 
 describe("parseChatAmount", () => {
   it("parses $480 as USD cents", () => {
@@ -49,5 +49,18 @@ describe("usdCentsFromInrPaise", () => {
   it("converts ₹40,000 at the labeled 0.012 demo rate to $480", () => {
     expect(usdCentsFromInrPaise(4_000_000, 0.012)).toBe(48000);
     expect(centsToAmountString(48000)).toBe("480.00");
+  });
+});
+
+describe("paypalMajorToCents", () => {
+  it("parses PayPal amount.value as integer cents", () => {
+    expect(paypalMajorToCents("74.21")).toBe(7421);
+    expect(paypalMajorToCents("480")).toBe(48000);
+    expect(paypalMajorToCents("0.50")).toBe(50);
+  });
+
+  it("rejects more than two decimal places", () => {
+    expect(paypalMajorToCents("1.234")).toBeNull();
+    expect(paypalMajorToCents("-12.00")).toBeNull();
   });
 });
