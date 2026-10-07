@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start --hostname 0.0.0.0",
-    "start:web": "npm rebuild better-sqlite3 && next start --hostname 0.0.0.0",
+    "start:web": "next start --hostname 0.0.0.0",
     "lint": "eslint",
     "db:generate": "drizzle-kit generate",
     "db:seed": "tsx scripts/seed.ts",
