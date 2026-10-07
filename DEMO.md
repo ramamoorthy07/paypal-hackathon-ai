@@ -28,7 +28,7 @@ Go to `/invoices`. Filter **Sent**. Open the invoice. Click **Refresh PayPal sta
 
 ## 1:40–2:15 — AG Grid dashboard
 
-Go to `/dashboard`. Click **Overdue**, then **Paid this month**. Click a row to jump to the invoice. Click **Write summary**. The briefing uses local totals only — it does not call PayPal.
+Go to `/dashboard`. Show the 6-week cash forecast and the client risk grid. Click **Why?** on a high-risk client. Click **Overdue**, then **Paid this month**. Click a row to jump to the invoice. Click **Write summary**. Totals and risk scores are computed in code; the model only explains.
 
 ## 2:15–2:45 — Overdue reminder
 

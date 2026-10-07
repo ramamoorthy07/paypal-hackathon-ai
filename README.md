@@ -2,7 +2,9 @@
 
 AI freelancer payment agent for the PayPal AI Hackathon. Talk in chat, confirm an invoice, send a real PayPal sandbox payment request, track whether the client paid, and remind them when they are overdue.
 
-**PayPal is the payment rail** (Invoicing REST, share-link send, webhooks, QR, remind). **AI is the operator** (parse messy chat, draft a local invoice, write a monthly briefing, compose reminder copy). The model never creates or sends a PayPal invoice.
+**PayPal is the payment rail** (Invoicing REST, share-link send, webhooks, QR, remind). **AI is the operator** (parse messy chat, draft a local invoice, write a monthly briefing, compose reminder copy, explain risk). The model never creates or sends a PayPal invoice.
+
+Parser evals: **40/40** on `npm run eval` ([docs/EVALS.md](docs/EVALS.md)).
 
 ```text
 chat → proposeInvoice (local DRAFT) → Confirm → PayPal share link
@@ -40,9 +42,9 @@ npm run dev
 curl -sS http://localhost:3000/api/health | python3 -m json.tool
 ```
 
-Without PayPal/OpenAI keys the server still starts. Health will be HTTP 503 with `checks.env.ok: false` and `checks.db.ok: true` (`invoiceCount` at least 5 after seed). After you fill `.env.local`, restart `npm run dev` and expect `"ok": true`.
+Without PayPal/OpenAI keys the server still starts. Health will be HTTP 503 with `checks.env.ok: false` and `checks.db.ok: true` (`invoiceCount` at least 25 after seed). After you fill `.env.local`, restart `npm run dev` and expect `"ok": true`.
 
-Seed five **demo** invoices (paid, sent, overdue, cancelled, draft) only when the database is empty. They are flagged `is_demo = true` and are not created in PayPal. Local default is libSQL file `data/paypilot.db` (gitignored). Production should use Turso (`DATABASE_URL` + `DATABASE_AUTH_TOKEN`) so data survives Render restarts.
+Seed ~25 **demo** invoices across 5 clients only when the database is empty. They are flagged `is_demo = true` and are not created in PayPal. Keep `seed-inv-draft` for Postman. Local default is libSQL file `data/paypilot.db` (gitignored). Production should use Turso (`DATABASE_URL` + `DATABASE_AUTH_TOKEN`) so data survives Render restarts.
 
 ```bash
 npm test
@@ -66,6 +68,7 @@ Required env (no values in git):
 - `PAYPAL_WEBHOOK_ID` (after you subscribe the webhook)
 - `CRON_SECRET` (same value as the GitHub Actions secret)
 - `DEMO_ACCESS_CODE` (required in production for chat, confirm, and remind)
+- `MCP_BEARER_TOKEN` (required in production for `/api/mcp`)
 
 Optional: `SEED_ON_BOOT=true` (demo rows only when the database is empty, `is_demo = true`).
 
@@ -104,10 +107,11 @@ Shooting script: [DEMO.md](DEMO.md).
 - Env validation (`lib/env.ts`) — fails fast with missing-variable names, never logs secrets
 - `/api/health` and `/api/health/live`
 - Drizzle schema, repositories, `npm run db:seed`
-- `/api/chat` — streaming agent with `proposeInvoice` (local `DRAFT` only)
-- `/` — chat UI and confirmation card
+- `/api/chat` — streaming agent with `proposeInvoice` (local `DRAFT` only) plus read tools `getCashForecast`, `getClientRisk`, `listOverdue`
+- `/` — chat UI and confirmation card (live Frankfurter INR→USD, optional “Also email via PayPal”)
 - `POST /api/invoices/confirm` — PayPal draft + share-link send, then local `SENT`
-- `/dashboard` — AG Grid earnings, overdue filter, AI monthly summary
+- `/dashboard` — AG Grid earnings + client risk, 6-week cash forecast, Why? LLM, AI monthly summary
+- `/api/mcp` — Streamable HTTP MCP (bearer). Read-only overdue / forecast / risk. See [docs/MCP.md](docs/MCP.md).
 - `/invoices` and `/invoices/[id]` — derived OVERDUE, payer link, QR, reminders
 - `POST /api/webhooks/paypal` — verify-webhook-signature, then PAID/CANCELLED (idempotent)
 - `POST /api/invoices/[id]/sync` — fallback GET when webhooks cannot reach localhost
@@ -117,7 +121,7 @@ Shooting script: [DEMO.md](DEMO.md).
 
 ## Security
 
-- **HITL:** the model can only `proposeInvoice` (local `DRAFT`). PayPal create/send happens only after the user confirms in the UI.
+- **HITL:** the model can `proposeInvoice` (local `DRAFT`) and read cash/risk/overdue (plus optional PayPal Agent Toolkit `list_invoices` / `search_invoicing`). PayPal create/send happens only after the user confirms in the UI. See [docs/SPIKE_CLIENT_AGENT.md](docs/SPIKE_CLIENT_AGENT.md).
 - **Caps:** `MAX_INVOICE_USD` (default 5000), 2 PayPal reminders per invoice per UTC day, per-IP rate limit, daily LLM and PayPal write budgets.
 - **Sanitization:** untrusted names, notes, and emails are stripped of HTML, schemes, and control characters before storage.
 - **Access gate:** production chat, confirm, and remind require a `DEMO_ACCESS_CODE` cookie from `/unlock`. Health and the PayPal webhook are public.
