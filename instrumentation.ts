@@ -3,6 +3,6 @@ export async function register(): Promise<void> {
     return;
   }
 
-  const { getEnv } = await import("./lib/env");
-  getEnv();
+  const { warnIfEnvInvalid } = await import("./lib/env");
+  warnIfEnvInvalid({ fatal: process.env.NODE_ENV === "production" });
 }

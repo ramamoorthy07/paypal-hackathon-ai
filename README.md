@@ -10,22 +10,23 @@ AI freelancer payment agent. Talk in chat, confirm an invoice, send a real PayPa
 cp .env.example .env.local
 ```
 
-Required for this step: `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_MODE=sandbox`, `OPENAI_API_KEY` (validated at startup even though chat lands later).
+PayPal and OpenAI keys are required for a green PayPal health check and for later chat. The database and seed work without them. Get sandbox credentials from the [PayPal Developer Dashboard](https://developer.paypal.com/dashboard/).
 
-2. Install and start:
+2. Install, seed, and start (use **two terminals** — `npm run dev` is a long-running process):
 
 ```bash
 npm install
+npm run db:seed
 npm run dev
 ```
 
-3. Confirm PayPal auth:
+3. In another terminal, confirm health:
 
 ```bash
 curl -sS http://localhost:3000/api/health | python3 -m json.tool
 ```
 
-You want `"ok": true`, `checks.db.ok: true`, and `checks.paypal.ok: true`.
+Without PayPal/OpenAI keys the server still starts. Health will be HTTP 503 with `checks.env.ok: false` and `checks.db.ok: true` (`invoiceCount` at least 5 after seed). After you fill `.env.local`, restart `npm run dev` and expect `"ok": true` plus `checks.paypal.ok: true`.
 
 Seed five local demo invoices (paid, sent, overdue, cancelled, draft). These are **not** created in PayPal:
 

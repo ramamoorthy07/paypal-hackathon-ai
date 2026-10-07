@@ -36,12 +36,8 @@ function formatEnvError(error: z.ZodError): string {
   ].join("\n");
 }
 
-export function getEnv(): Env {
-  if (cached) {
-    return cached;
-  }
-
-  const parsed = envSchema.safeParse({
+function readEnv() {
+  return envSchema.safeParse({
     PAYPAL_CLIENT_ID: process.env.PAYPAL_CLIENT_ID,
     PAYPAL_CLIENT_SECRET: process.env.PAYPAL_CLIENT_SECRET,
     PAYPAL_MODE: process.env.PAYPAL_MODE,
@@ -51,13 +47,35 @@ export function getEnv(): Env {
     DATABASE_URL: process.env.DATABASE_URL,
     INR_USD_RATE: process.env.INR_USD_RATE,
   });
+}
 
+export function getEnv(): Env {
+  if (cached) {
+    return cached;
+  }
+
+  const parsed = readEnv();
   if (!parsed.success) {
     throw new Error(formatEnvError(parsed.error));
   }
 
   cached = parsed.data;
   return cached;
+}
+
+/** Logs missing secrets in `next dev`. Crashes only in production so local DB work can proceed. */
+export function warnIfEnvInvalid(options: { fatal: boolean }): void {
+  const parsed = readEnv();
+  if (parsed.success) {
+    cached = parsed.data;
+    return;
+  }
+
+  const message = formatEnvError(parsed.error);
+  if (options.fatal) {
+    throw new Error(message);
+  }
+  console.error(message);
 }
 
 export function paypalApiBase(mode: Env["PAYPAL_MODE"] = getEnv().PAYPAL_MODE): string {
