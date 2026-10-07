@@ -129,8 +129,8 @@
                 "value": "Bearer {{cronSecret}}"
               }
             ],
-            "url": "{{baseUrl}}/api/cron/reminders",
-            "description": "Locally, omit Authorization when CRON_SECRET is unset. Production requires the bearer token."
+            "url": "{{baseUrl}}/api/cron/overdue",
+            "description": "GitHub Actions posts here with Authorization: Bearer CRON_SECRET. Locally, omit Authorization when CRON_SECRET is unset. /api/cron/reminders is an alias."
           }
         }
       ]

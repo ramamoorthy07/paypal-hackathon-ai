@@ -59,9 +59,22 @@ Blueprint: [`render.yaml`](render.yaml).
 1. New → Blueprint, connect [this GitHub repo](https://github.com/ramamoorthy07/paypal-hackathon-ai).
 2. Set `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `OPENAI_API_KEY`, `AZURE_OPENAI_ENDPOINT`, `DATABASE_URL`, and `DATABASE_AUTH_TOKEN` (Turso). Optional: `PAYPAL_WEBHOOK_ID`.
 3. After the first deploy, subscribe a PayPal sandbox webhook to `https://<service>.onrender.com/api/webhooks/paypal` for `INVOICING.INVOICE.PAID` and `INVOICING.INVOICE.CANCELLED`. Until then, invoice pages poll.
-4. `SEED_ON_BOOT=true` loads demo rows only when the database is empty (`is_demo = true`). `CRON_SECRET` is generated; the cron job posts to `/api/cron/reminders` twice daily UTC.
+4. `SEED_ON_BOOT=true` loads demo rows only when the database is empty (`is_demo = true`).
 
 Liveness for Render is `GET /api/health/live` (no PayPal/LLM). Full checks stay on `/api/health`.
+
+## Scheduled reminders (GitHub Actions)
+
+Render free has no cron. [`.github/workflows/overdue.yml`](.github/workflows/overdue.yml) `POST`s `/api/cron/overdue` at 09:00 and 21:00 UTC (`workflow_dispatch` works too).
+
+Repo secrets (GitHub → Settings → Secrets and variables → Actions):
+
+| Secret | Value |
+| --- | --- |
+| `CRON_URL` | `https://<service>.onrender.com/api/cron/overdue` |
+| `CRON_SECRET` | same bearer token as the Render `CRON_SECRET` env var |
+
+The route is not demo-gated. In production it returns 401 unless `Authorization: Bearer $CRON_SECRET` matches. `/api/cron/reminders` is an alias.
 
 ## Postman
 
@@ -87,7 +100,7 @@ Shooting script: [DEMO.md](DEMO.md).
 - `POST /api/invoices/[id]/sync` — fallback GET when webhooks cannot reach localhost
 - `POST /api/summary/monthly` — AI briefing from local totals (no PayPal call)
 - `POST /api/invoices/[id]/remind` — AI note + PayPal remind (overdue, max 2/UTC day)
-- `GET|POST /api/cron/reminders` — overdue sweep; `CRON_SECRET` in production
+- `GET|POST /api/cron/overdue` — overdue PayPal remind sweep (alias `/api/cron/reminders`); `CRON_SECRET` in production; GitHub Actions twice daily UTC
 
 ## License
 
