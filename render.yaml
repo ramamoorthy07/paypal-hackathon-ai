@@ -4,7 +4,7 @@ services:
     runtime: node
     plan: starter
     healthCheckPath: /api/health/live
-    buildCommand: npm ci && npm rebuild better-sqlite3 && npm run build
+    buildCommand: npm ci --include=dev && npm rebuild better-sqlite3 && npm run build
     startCommand: npm run start:web
     disk:
       name: paypilot-data

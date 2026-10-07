@@ -23,7 +23,7 @@ export function sqliteFilePath(databaseUrl: string): string {
     }
   }
 
-  return isAbsolute(path) ? path : resolve(process.cwd(), path);
+  return isAbsolute(path) ? path : resolve(/* turbopackIgnore: true */ process.cwd(), path);
 }
 
 export function getDatabaseUrl(): string {
