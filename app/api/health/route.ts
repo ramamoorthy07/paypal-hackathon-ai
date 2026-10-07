@@ -1,14 +1,11 @@
 import { NextResponse } from "next/server";
 import { pingDb } from "@/lib/db";
 import { getEnv } from "@/lib/env";
+import { publicDb, publicEnv, publicLlm, publicPaypal, type CheckResult } from "@/lib/health/public";
 import { pingLlm } from "@/lib/llm/ping";
 import { PayPalError, pingPaypalInvoices } from "@/lib/paypal/client";
 
 export const dynamic = "force-dynamic";
-
-type CheckResult =
-  | { ok: true; [key: string]: unknown }
-  | { ok: false; message: string; [key: string]: unknown };
 
 export async function GET(): Promise<NextResponse> {
   let envCheck: CheckResult;
@@ -102,10 +99,10 @@ export async function GET(): Promise<NextResponse> {
     {
       ok,
       checks: {
-        env: envCheck,
-        db: dbCheck,
-        paypal: paypalCheck,
-        llm: llmCheck,
+        env: publicEnv(envCheck),
+        db: publicDb(dbCheck),
+        paypal: publicPaypal(paypalCheck),
+        llm: publicLlm(llmCheck),
       },
     },
     { status: ok ? 200 : 503 },

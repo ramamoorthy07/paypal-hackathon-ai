@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { denyIfAbusive } from "@/lib/access/abuse";
 import { getEnv } from "@/lib/env";
 import { ConfirmError, confirmInvoice } from "@/lib/invoices/confirm";
 import { PayPalError } from "@/lib/paypal/errors";
@@ -19,6 +20,11 @@ export async function POST(req: Request): Promise<NextResponse> {
       { ok: false, error: error instanceof Error ? error.message : "Environment is invalid." },
       { status: 503 },
     );
+  }
+
+  const denied = denyIfAbusive(req, { paypalWrite: true });
+  if (denied) {
+    return denied;
   }
 
   let json: unknown;

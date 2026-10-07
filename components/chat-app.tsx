@@ -35,12 +35,15 @@ export function ChatApp() {
               Freelancer payment agent
             </h1>
           </div>
-          <nav className="flex items-center gap-4 text-sm text-zinc-500">
+          <nav className="flex flex-wrap items-center justify-end gap-x-4 gap-y-1 text-sm text-zinc-500">
             <a className="underline" href="/dashboard">
               Dashboard
             </a>
             <a className="underline" href="/invoices">
               Invoices
+            </a>
+            <a className="underline" href="/unlock">
+              Unlock
             </a>
             <a className="underline" href="/api/health">
               Health

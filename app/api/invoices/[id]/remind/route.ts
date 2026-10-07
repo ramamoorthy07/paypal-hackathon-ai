@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { denyIfAbusive } from "@/lib/access/abuse";
 import { getEnv } from "@/lib/env";
 import { RemindError, sendOverdueReminder } from "@/lib/invoices/remind";
 import { PayPalError } from "@/lib/paypal/errors";
@@ -7,13 +8,18 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 export async function POST(
-  _req: Request,
+  req: Request,
   context: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   try {
     getEnv();
   } catch {
     return NextResponse.json({ ok: false, error: "Environment is invalid." }, { status: 503 });
+  }
+
+  const denied = denyIfAbusive(req, { llm: true, paypalWrite: true });
+  if (denied) {
+    return denied;
   }
 
   const { id } = await context.params;
