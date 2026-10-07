@@ -136,10 +136,34 @@ export async function paypalFetch<T>(
 
   const text = await response.text();
   if (response.status === 204 || text.trim().length === 0) {
-    return schema.parse(undefined);
+    const empty = schema.safeParse(undefined);
+    if (!empty.success) {
+      throw paypalErrorFromHttp(response.status, {
+        name: "INVALID_RESPONSE",
+        message: "PayPal returned an empty response.",
+      });
+    }
+    return empty.data;
   }
 
-  return schema.parse(JSON.parse(text) as unknown);
+  let json: unknown;
+  try {
+    json = JSON.parse(text) as unknown;
+  } catch {
+    throw paypalErrorFromHttp(response.status, {
+      name: "INVALID_RESPONSE",
+      message: "PayPal returned non-JSON.",
+    });
+  }
+
+  const parsed = schema.safeParse(json);
+  if (!parsed.success) {
+    throw paypalErrorFromHttp(response.status, {
+      name: "INVALID_RESPONSE",
+      message: "PayPal response did not match the expected shape.",
+    });
+  }
+  return parsed.data;
 }
 
 export async function pingPaypalInvoices(): Promise<{

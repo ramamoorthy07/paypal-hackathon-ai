@@ -50,4 +50,5 @@ Use a **Sandbox Business** app for the merchant credentials. A **Sandbox Persona
 - `/api/health` — env + SQLite ping + PayPal OAuth + list 1 invoice
 - Drizzle schema, repositories, and `npm run db:seed`
 - `/api/chat` — streaming agent with `proposeInvoice` (local `DRAFT` only; no PayPal send)
-- Placeholder home page. Confirmation card and `/api/invoices/confirm` come next.
+- `/` — chat UI and confirmation card
+- `POST /api/invoices/confirm` — first PayPal contact: create draft + send as share link, then local `SENT`

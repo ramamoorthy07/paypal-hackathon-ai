@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { toUiMessages } from "@/lib/agent/messages";
 import { agentSystemPrompt } from "@/lib/agent/prompt";
+import { chatStreamErrorMessage } from "@/lib/agent/stream-error";
 import { agentTools } from "@/lib/agent/tools";
 import { getEnv } from "@/lib/env";
 
@@ -55,5 +56,7 @@ export async function POST(req: Request): Promise<Response> {
     },
   });
 
-  return result.toUIMessageStreamResponse();
+  return result.toUIMessageStreamResponse({
+    onError: chatStreamErrorMessage,
+  });
 }

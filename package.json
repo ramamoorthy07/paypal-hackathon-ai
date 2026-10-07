@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.87",
+    "@ai-sdk/react": "^4.0.134",
     "ai": "^7.0.131",
     "better-sqlite3": "^13.0.3",
     "drizzle-orm": "^0.45.3",

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { resetEnvCache } from "@/lib/env";
 import { resetPaypalTokenCache } from "@/lib/paypal/client";
-import { createDraftInvoice, sendInvoiceAsShareLink } from "@/lib/paypal/invoicing";
+import { createDraftInvoice, invoiceIdFromHref, sendInvoiceAsShareLink } from "@/lib/paypal/invoicing";
 import { idempotencyKey } from "@/lib/paypal/errors";
 
 function jsonResponse(body: unknown, status = 200): Response {
@@ -113,5 +113,36 @@ describe("PayPal invoicing REST", () => {
     expect(retried).toBeDefined();
     const headers = new Headers((retried as [string, RequestInit])[1].headers);
     expect(headers.get("Authorization")).toBe("Bearer token-new");
+  });
+
+  it("follows Location when create returns an empty body", async () => {
+    fetchMock
+      .mockResolvedValueOnce(
+        jsonResponse({ access_token: "token-1", token_type: "Bearer", expires_in: 32400 }),
+      )
+      .mockResolvedValueOnce(
+        new Response("{}", {
+          status: 201,
+          headers: {
+            "Content-Type": "application/json",
+            Location: "https://api-m.sandbox.paypal.com/v2/invoicing/invoices/INV2-LOC",
+          },
+        }),
+      )
+      .mockResolvedValueOnce(jsonResponse({ id: "INV2-LOC", status: "DRAFT" }));
+
+    const invoice = await createDraftInvoice({
+      localInvoiceId: "inv_loc",
+      recipientEmail: "buyer@example.com",
+      items: [{ name: "Logo", quantity: 1, unitAmountCents: 10000 }],
+    });
+
+    expect(invoice.id).toBe("INV2-LOC");
+    expect(invoiceIdFromHref("https://api-m.sandbox.paypal.com/v2/invoicing/invoices/INV2-LOC")).toBe(
+      "INV2-LOC",
+    );
+    const getCall = fetchMock.mock.calls[2];
+    expect(getCall).toBeDefined();
+    expect(String((getCall as [string, RequestInit])[0])).toContain("/v2/invoicing/invoices/INV2-LOC");
   });
 });

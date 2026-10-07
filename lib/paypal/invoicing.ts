@@ -38,6 +38,25 @@ export function hostedUrlFromInvoice(invoice: PaypalInvoice): string | undefined
   return payerView?.href;
 }
 
+export function invoiceIdFromHref(href: string | null | undefined): string | undefined {
+  if (!href) {
+    return undefined;
+  }
+  const match = href.match(/\/v2\/invoicing\/invoices\/([^/?#]+)/i);
+  return match?.[1] ? decodeURIComponent(match[1]) : undefined;
+}
+
+function jsonOrUndefined(text: string): unknown {
+  if (!text.trim()) {
+    return undefined;
+  }
+  try {
+    return JSON.parse(text) as unknown;
+  } catch {
+    return undefined;
+  }
+}
+
 export async function createDraftInvoice(input: CreateDraftInvoiceInput): Promise<PaypalInvoice> {
   const currency = input.currency ?? "USD";
   const recipient = splitName(input.recipientName);
@@ -70,10 +89,35 @@ export async function createDraftInvoice(input: CreateDraftInvoiceInput): Promis
     items,
   };
 
-  return paypalFetch("/v2/invoicing/invoices", paypalInvoiceSchema, {
+  const response = await paypalRequest("/v2/invoicing/invoices", {
     method: "POST",
     idempotencyKey: idempotencyKey(input.localInvoiceId, "create"),
     body: JSON.stringify(body),
+  });
+
+  const text = await response.text();
+  if (!response.ok) {
+    throw paypalErrorFromHttp(response.status, jsonOrUndefined(text), text);
+  }
+
+  const json = jsonOrUndefined(text);
+  const parsed = paypalInvoiceSchema.safeParse(json);
+  if (parsed.success) {
+    return parsed.data;
+  }
+
+  const hrefFromBody =
+    json && typeof json === "object" && "href" in json && typeof json.href === "string"
+      ? json.href
+      : undefined;
+  const id = invoiceIdFromHref(response.headers.get("location") ?? hrefFromBody);
+  if (id) {
+    return getInvoice(id);
+  }
+
+  throw paypalErrorFromHttp(response.status, {
+    name: "INVALID_RESPONSE",
+    message: `PayPal create invoice response did not include an invoice id. location=${response.headers.get("location") ? "yes" : "no"}`,
   });
 }
 

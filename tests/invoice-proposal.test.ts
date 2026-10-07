@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { evaluateProposal } from "@/lib/agent/propose";
 import { invoiceProposalSchema } from "@/lib/agent/schema";
+import { chatStreamErrorMessage } from "@/lib/agent/stream-error";
 import { agentTools } from "@/lib/agent/tools";
 
 const limits = { maxInvoiceUsd: 5000 };
@@ -103,5 +104,14 @@ describe("evaluateProposal", () => {
 describe("agent tools", () => {
   it("exposes only proposeInvoice to the model", () => {
     expect(Object.keys(agentTools)).toEqual(["proposeInvoice"]);
+  });
+});
+
+describe("chatStreamErrorMessage", () => {
+  it("does not forward API key material to the client", () => {
+    expect(
+      chatStreamErrorMessage(new Error("Incorrect API key provided: sk-secret")),
+    ).toBe("OpenAI rejected the API key. Check OPENAI_API_KEY in .env.local.");
+    expect(chatStreamErrorMessage(new Error("model overloaded"))).toBe("Chat failed. Try again.");
   });
 });
