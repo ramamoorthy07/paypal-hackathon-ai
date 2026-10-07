@@ -36,6 +36,9 @@ export function ChatApp() {
             </h1>
           </div>
           <nav className="flex items-center gap-4 text-sm text-zinc-500">
+            <a className="underline" href="/dashboard">
+              Dashboard
+            </a>
             <a className="underline" href="/invoices">
               Invoices
             </a>
