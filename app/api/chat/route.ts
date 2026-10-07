@@ -1,0 +1,59 @@
+import { convertToModelMessages, stepCountIs, streamText } from "ai";
+import { openai } from "@ai-sdk/openai";
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { toUiMessages } from "@/lib/agent/messages";
+import { agentSystemPrompt } from "@/lib/agent/prompt";
+import { agentTools } from "@/lib/agent/tools";
+import { getEnv } from "@/lib/env";
+
+export const dynamic = "force-dynamic";
+export const maxDuration = 60;
+
+const chatBodySchema = z.object({
+  messages: z.array(z.unknown()).min(1),
+});
+
+export async function POST(req: Request): Promise<Response> {
+  let env;
+  try {
+    env = getEnv();
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : "Environment is invalid.",
+      },
+      { status: 503 },
+    );
+  }
+
+  let json: unknown;
+  try {
+    json = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Request body must be JSON." }, { status: 400 });
+  }
+
+  const parsed = chatBodySchema.safeParse(json);
+  if (!parsed.success) {
+    return NextResponse.json({ error: "messages array is required." }, { status: 400 });
+  }
+
+  const messages = await convertToModelMessages(toUiMessages(parsed.data.messages));
+
+  const result = streamText({
+    model: openai("gpt-4o"),
+    system: agentSystemPrompt({
+      maxInvoiceUsd: env.MAX_INVOICE_USD,
+      inrUsdRate: env.INR_USD_RATE,
+    }),
+    messages,
+    tools: agentTools,
+    stopWhen: stepCountIs(5),
+    onError: ({ error }) => {
+      console.error("chat stream error", error instanceof Error ? error.message : error);
+    },
+  });
+
+  return result.toUIMessageStreamResponse();
+}

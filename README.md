@@ -49,4 +49,5 @@ Use a **Sandbox Business** app for the merchant credentials. A **Sandbox Persona
 - Env validation (`lib/env.ts`) — fails fast with missing-variable names, never logs secrets
 - `/api/health` — env + SQLite ping + PayPal OAuth + list 1 invoice
 - Drizzle schema, repositories, and `npm run db:seed`
-- Placeholder home page
+- `/api/chat` — streaming agent with `proposeInvoice` (local `DRAFT` only; no PayPal send)
+- Placeholder home page. Confirmation card and `/api/invoices/confirm` come next.

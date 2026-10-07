@@ -12,6 +12,8 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^4.0.87",
+    "ai": "^7.0.131",
     "better-sqlite3": "^13.0.3",
     "drizzle-orm": "^0.45.3",
     "next": "16.4.0",
