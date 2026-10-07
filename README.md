@@ -13,7 +13,7 @@ chat → proposeInvoice (local DRAFT) → Confirm → PayPal share link
 ## Sponsors used
 
 - **AG Grid Community** — `/dashboard` earnings table, overdue/outstanding filters, row open
-- **Render** — `render.yaml` Blueprint (web service + reminder cron + SQLite disk)
+- **Render** — free Docker web service (`paypilot-docker`)
 - **Postman** — `postman/PayPilot.postman_collection.json`
 
 ## Run locally
@@ -54,14 +54,26 @@ Use a **Sandbox Business** app for merchant credentials. A **Sandbox Personal** 
 
 ## Deploy on Render
 
-Blueprint: [`render.yaml`](render.yaml).
+Live service: **paypilot-docker** at `https://paypilot-docker.onrender.com`. It is a **free Docker** web service. There is **no disk**, **no Starter plan**, and **no Render cron**. SQLite on the instance is wiped on restart; use Turso (`DATABASE_URL` + `DATABASE_AUTH_TOKEN`).
 
-1. New → Blueprint, connect [this GitHub repo](https://github.com/ramamoorthy07/paypal-hackathon-ai).
-2. Set `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `OPENAI_API_KEY`, `AZURE_OPENAI_ENDPOINT`, `DATABASE_URL`, and `DATABASE_AUTH_TOKEN` (Turso). Optional: `PAYPAL_WEBHOOK_ID`.
-3. After the first deploy, subscribe a PayPal sandbox webhook to `https://<service>.onrender.com/api/webhooks/paypal` for `INVOICING.INVOICE.PAID` and `INVOICING.INVOICE.CANCELLED`. Until then, invoice pages poll.
-4. `SEED_ON_BOOT=true` loads demo rows only when the database is empty (`is_demo = true`).
+[`render.yaml`](render.yaml) matches that. Secrets are listed with `sync: false` (set them in the Render dashboard; do not put values in git).
 
-Liveness for Render is `GET /api/health/live` (no PayPal/LLM). Full checks stay on `/api/health`.
+Required env (no values in git):
+
+- `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_MODE=sandbox`
+- `OPENAI_API_KEY` (Azure api-key), `AZURE_OPENAI_ENDPOINT`, optional `AZURE_OPENAI_DEPLOYMENT`
+- `DATABASE_URL`, `DATABASE_AUTH_TOKEN` (Turso)
+- `PAYPAL_WEBHOOK_ID` (after you subscribe the webhook)
+- `CRON_SECRET` (same value as the GitHub Actions secret)
+- `DEMO_ACCESS_CODE` (required in production for chat, confirm, and remind)
+
+Optional: `SEED_ON_BOOT=true` (demo rows only when the database is empty, `is_demo = true`).
+
+After deploy, subscribe a PayPal sandbox webhook to `https://paypilot-docker.onrender.com/api/webhooks/paypal` for `INVOICING.INVOICE.PAID` and `INVOICING.INVOICE.CANCELLED`. Until then, invoice pages poll.
+
+Liveness is `GET /api/health/live` (no PayPal/LLM). Full checks stay on `/api/health`.
+
+**Cold start:** the free instance sleeps after idle time. The first request can take a minute. [`.github/workflows/keepalive.yml`](.github/workflows/keepalive.yml) `GET`s `/api/health/live` every 10 minutes. Set repo secret `APP_URL` to `https://paypilot-docker.onrender.com`. This uses GitHub Actions minutes; it is not a Render Background Worker.
 
 ## Scheduled reminders (GitHub Actions)
 
@@ -71,8 +83,9 @@ Repo secrets (GitHub → Settings → Secrets and variables → Actions):
 
 | Secret | Value |
 | --- | --- |
-| `CRON_URL` | `https://<service>.onrender.com/api/cron/overdue` |
+| `CRON_URL` | `https://paypilot-docker.onrender.com/api/cron/overdue` |
 | `CRON_SECRET` | same bearer token as the Render `CRON_SECRET` env var |
+| `APP_URL` | `https://paypilot-docker.onrender.com` (keep-alive ping) |
 
 The route is not demo-gated. In production it returns 401 unless `Authorization: Bearer $CRON_SECRET` matches. `/api/cron/reminders` is an alias.
 
