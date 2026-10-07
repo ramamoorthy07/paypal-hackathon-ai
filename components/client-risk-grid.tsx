@@ -111,10 +111,7 @@ export function ClientRiskGrid({ rows }: { rows: ClientBehavior[] }) {
     <section className="space-y-2">
       <div>
         <p className="text-xs font-medium tracking-wide text-zinc-500 uppercase">Client risk</p>
-        <p className="text-xs text-zinc-500">
-          Score = clamp(round(55 × lateRate + 2.5 × avgDaysLate + 8 × openOverdue), 0, 100). Why?
-          is an LLM explanation of those facts.
-        </p>
+        <p className="text-xs text-zinc-500">Score from late rate, days late, and open overdue. Why? explains the numbers.</p>
       </div>
       <AgGridProvider modules={modules}>
         <div className="h-[320px] w-full overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800">

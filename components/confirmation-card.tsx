@@ -262,9 +262,7 @@ function ConfirmDraftCard({ proposal }: { proposal: DraftProposal }) {
         ) : (
           <>
             <p className="text-xs text-zinc-500">
-              Confirm creates a real PayPal sandbox invoice and a payer share link
-              (`send_to_recipient: false` unless you also email). Nothing reaches PayPal until you
-              confirm.
+              Confirm creates a PayPal sandbox invoice and a share link. PayPal is not contacted until then.
             </p>
             <label className="flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-300">
               <input

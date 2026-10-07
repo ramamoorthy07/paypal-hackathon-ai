@@ -1,5 +1,3 @@
-import { AppHeader } from "@/components/app-header";
-
 export const dynamic = "force-dynamic";
 
 export default async function UnlockPage({
@@ -16,12 +14,10 @@ export default async function UnlockPage({
         : null;
 
   return (
-    <div className="flex flex-1 flex-col bg-zinc-50 dark:bg-black">
-      <AppHeader title="Unlock demo" />
-      <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-4 px-4 py-10">
+    <div className="flex w-full max-w-md flex-1 flex-col gap-4 px-6 py-10">
+      <h1 className="text-xl font-semibold">Unlock</h1>
         <p className="text-sm leading-6 text-zinc-600 dark:text-zinc-400">
-          Chat, confirm, and PayPal reminders are gated so a public demo cannot burn Azure credits
-          or spam sandbox invoices. Enter the demo access code to continue.
+          Enter the demo access code to use chat, confirm, and reminders.
         </p>
         <form
           method="post"
@@ -47,7 +43,6 @@ export default async function UnlockPage({
           </button>
           {message ? <p className="text-sm text-red-600 dark:text-red-400">{message}</p> : null}
         </form>
-      </main>
     </div>
   );
 }

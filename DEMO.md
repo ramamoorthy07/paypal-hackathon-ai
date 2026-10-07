@@ -4,7 +4,7 @@ Record at 1080p. Dark OS theme. Use a **Sandbox Business** merchant and a **Sand
 
 ## 0:00–0:20 — The problem
 
-On screen: homepage chat, empty. Point at the **Sandbox demo** banner (PayPal is not contacted until Confirm).
+On screen: homepage chat, empty. Point at the sidebar note: PayPal waits until you Confirm.
 
 Say: Freelancers get paid late because invoicing is messy chat, then a dashboard, then PayPal. PayPilot is the operator. PayPal is the rail. The model never sends money.
 

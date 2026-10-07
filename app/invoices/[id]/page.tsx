@@ -1,5 +1,5 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AppHeader } from "@/components/app-header";
 import { InvoiceQr } from "@/components/invoice-qr";
 import { InvoiceRemind } from "@/components/invoice-remind";
 import { InvoiceStatusSync } from "@/components/invoice-status-sync";
@@ -37,13 +37,11 @@ export default async function InvoiceDetailPage({
       : null;
 
   return (
-    <div className="flex flex-1 flex-col bg-zinc-50 dark:bg-black">
-      <AppHeader title="Invoice" />
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-5 px-4 py-6">
+    <div className="flex w-full max-w-5xl flex-1 flex-col gap-5 px-6 py-6">
         <p className="text-sm text-zinc-500">
-          <a className="underline" href="/invoices">
-            All invoices
-          </a>
+          <Link className="underline" href="/invoices">
+            Invoices
+          </Link>
         </p>
 
         <section className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950">
@@ -133,7 +131,6 @@ export default async function InvoiceDetailPage({
           disabledReason={remindDisabledReason}
           reminders={reminders}
         />
-      </main>
     </div>
   );
 }

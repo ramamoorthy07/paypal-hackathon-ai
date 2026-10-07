@@ -1,4 +1,3 @@
-import { AppHeader } from "@/components/app-header";
 import { CashForecastChart } from "@/components/cash-forecast-chart";
 import { ClientRiskGrid } from "@/components/client-risk-grid";
 import { EarningsGrid } from "@/components/earnings-grid";
@@ -18,12 +17,11 @@ export default async function DashboardPage() {
   const rows = invoices.map((invoice) => toEarningsRow(invoice, byClient.get(invoice.clientId)));
 
   return (
-    <div className="flex flex-1 flex-col bg-zinc-50 dark:bg-black">
-      <AppHeader title="Earnings" wide />
-      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-5 px-4 py-6">
+    <div className="flex w-full max-w-6xl flex-1 flex-col gap-5 px-6 py-6">
+      <h1 className="text-xl font-semibold">Dashboard</h1>
         {invoices.length === 0 ? (
           <p className="rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-600 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400">
-            No invoices yet. Draft one in Chat and Confirm — the dashboard only shows real rows.
+            No invoices yet. Draft one in Chat and Confirm.
           </p>
         ) : null}
 
@@ -54,7 +52,6 @@ export default async function DashboardPage() {
         <ClientRiskGrid rows={behaviors} />
         <EarningsGrid rows={rows} nowMs={now} />
         <MonthlySummary />
-      </main>
     </div>
   );
 }

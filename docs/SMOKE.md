@@ -18,7 +18,7 @@ Recorded **2026-10-08** against the running Render free Docker service. Chat/con
 
 ## Gaps to fix on Render (ops, not code)
 
-1. Redeploy `paypilot-docker` from current `main` so `/unlock`, `/api/mcp`, dashboard insights, and the demo banner ship.
+1. Redeploy `paypilot-docker` from current `main` so `/unlock`, `/api/mcp`, dashboard insights, and the sidebar ship.
 2. Point `DATABASE_URL` + `DATABASE_AUTH_TOKEN` at Turso. The app does not seed fake invoices.
 3. Set `DEMO_ACCESS_CODE` and `MCP_BEARER_TOKEN` in the Render dashboard.
 4. Confirm GitHub Action secrets `APP_URL`, `CRON_URL`, `CRON_SECRET`.

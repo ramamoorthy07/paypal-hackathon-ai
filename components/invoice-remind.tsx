@@ -52,7 +52,7 @@ export function InvoiceRemind({
         <div>
           <p className="text-xs font-medium tracking-wide text-zinc-500 uppercase">Reminders</p>
           <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-            AI writes the note. PayPal emails the client. Cap is two reminders per invoice per UTC day.
+            AI writes the note. PayPal emails it. Two per UTC day.
           </p>
         </div>
         <button

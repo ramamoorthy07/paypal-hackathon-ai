@@ -1,4 +1,4 @@
-import { AppHeader } from "@/components/app-header";
+import Link from "next/link";
 import { InvoiceOpenRefresh } from "@/components/invoice-open-refresh";
 import { PaypalReconcileButton } from "@/components/paypal-reconcile-button";
 import { StatusBadge } from "@/components/status-badge";
@@ -41,34 +41,33 @@ export default async function InvoicesPage({
     .map((row) => row.id);
 
   return (
-    <div className="flex flex-1 flex-col bg-zinc-50 dark:bg-black">
-      <AppHeader title="Invoices" />
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-4 px-4 py-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap gap-2">
-            {FILTERS.map((item) => {
-              const href = item.id === "ALL" ? "/invoices" : `/invoices?status=${item.id}`;
-              const active = filter === item.id;
-              return (
-                <a
-                  key={item.id}
-                  href={href}
-                  className={`rounded-full px-3 py-1.5 text-sm ${
-                    active
-                      ? "bg-zinc-950 text-white dark:bg-zinc-100 dark:text-zinc-950"
-                      : "border border-zinc-200 text-zinc-600 dark:border-zinc-700 dark:text-zinc-300"
-                  }`}
-                >
-                  {item.label}
-                </a>
-              );
-            })}
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <PaypalReconcileButton />
-            <InvoiceOpenRefresh ids={openIds} />
-          </div>
+    <div className="flex w-full max-w-5xl flex-1 flex-col gap-4 px-6 py-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-xl font-semibold">Invoices</h1>
+        <div className="flex flex-wrap items-center gap-3">
+          <PaypalReconcileButton />
+          <InvoiceOpenRefresh ids={openIds} />
         </div>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {FILTERS.map((item) => {
+          const href = item.id === "ALL" ? "/invoices" : `/invoices?status=${item.id}`;
+          const active = filter === item.id;
+          return (
+            <Link
+              key={item.id}
+              href={href}
+              className={`rounded-full px-3 py-1.5 text-sm ${
+                active
+                  ? "bg-zinc-950 text-white dark:bg-zinc-100 dark:text-zinc-950"
+                  : "border border-zinc-200 text-zinc-600 dark:border-zinc-700 dark:text-zinc-300"
+              }`}
+            >
+              {item.label}
+            </Link>
+          );
+        })}
+      </div>
 
         <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
           <table className="w-full text-left text-sm">
@@ -93,13 +92,6 @@ export default async function InvoicesPage({
             </tbody>
           </table>
         </div>
-        <p className="text-xs text-zinc-500">
-          OVERDUE is derived from SENT invoices past their due date. Webhooks update PAID and
-          CANCELLED. Sync from PayPal lists sandbox invoices and upserts by paypal_invoice_id;
-          illegal status moves are ignored. Refresh asks PayPal for open rows when a webhook
-          cannot reach this machine.
-        </p>
-      </main>
     </div>
   );
 }
@@ -108,9 +100,9 @@ function InvoiceRow({ invoice }: { invoice: InvoiceView }) {
   return (
     <tr className="border-b border-zinc-100 last:border-0 dark:border-zinc-800">
       <td className="px-4 py-3">
-        <a className="font-medium text-zinc-950 underline dark:text-zinc-50" href={`/invoices/${invoice.id}`}>
+        <Link className="font-medium text-zinc-950 underline dark:text-zinc-50" href={`/invoices/${invoice.id}`}>
           {invoice.clientName}
-        </a>
+        </Link>
         <p className="text-xs text-zinc-500">{invoice.clientEmail}</p>
       </td>
       <td className="px-4 py-3 tabular-nums">
