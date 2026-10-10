@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { ActivityTable } from "@/components/activity-table";
+import { WebhookSimulator } from "@/components/webhook-simulator";
 import { listRecentAuditLogs } from "@/lib/db/repositories/audit-log";
+import { listInvoiceViews } from "@/lib/invoices/views";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +12,10 @@ export default async function ActivityHistoryPage({
   searchParams: Promise<{ actor?: string }>;
 }) {
   const { actor } = await searchParams;
-  const logs = await listRecentAuditLogs(100);
+  const [logs, invoices] = await Promise.all([
+    listRecentAuditLogs(100),
+    listInvoiceViews(),
+  ]);
 
   const filter = actor?.toLowerCase();
   const visible = filter ? logs.filter((l) => l.actor.toLowerCase() === filter) : logs;
@@ -18,6 +23,16 @@ export default async function ActivityHistoryPage({
   const agentCount = logs.filter((l) => l.actor === "agent").length;
   const userCount = logs.filter((l) => l.actor === "user").length;
   const webhookCount = logs.filter((l) => l.actor === "webhook").length;
+
+  const simulatorInvoices = invoices.map((inv) => ({
+    id: inv.id,
+    clientName: inv.clientName,
+    amountCents: inv.amountCents,
+    currency: inv.currency,
+    status: inv.status,
+    displayStatus: inv.displayStatus,
+    paypalInvoiceId: inv.paypalInvoiceId,
+  }));
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-6 py-6">
@@ -94,6 +109,9 @@ export default async function ActivityHistoryPage({
           <p className="mt-1 text-xs text-zinc-500">Real-time PayPal sandbox events</p>
         </div>
       </div>
+
+      {/* Interactive Webhook Simulator for Judges & Testing */}
+      <WebhookSimulator invoices={simulatorInvoices} />
 
       {/* Filter Tabs */}
       <div className="flex flex-wrap items-center justify-between gap-3">

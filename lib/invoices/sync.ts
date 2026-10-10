@@ -119,11 +119,28 @@ export async function syncInvoiceFromPaypal(
 export async function syncInvoiceByPaypalId(
   paypalInvoiceId: string,
   actor: "webhook" | "user" = "webhook",
+  snapshotOverride?: Partial<PaypalInvoice>,
 ): Promise<{ invoice: InvoiceRow; applied: boolean; reason?: TransitionFailure } | undefined> {
   const local = await getInvoiceByPaypalId(paypalInvoiceId);
   if (!local) {
     return undefined;
   }
-  const paypal = await getInvoice(paypalInvoiceId);
+  let paypal: PaypalInvoice;
+  try {
+    paypal = await getInvoice(paypalInvoiceId);
+    if (snapshotOverride && snapshotOverride.status) {
+      paypal = { ...paypal, ...snapshotOverride };
+    }
+  } catch (error) {
+    if (snapshotOverride && snapshotOverride.status) {
+      paypal = {
+        id: paypalInvoiceId,
+        status: snapshotOverride.status,
+        ...snapshotOverride,
+      } as PaypalInvoice;
+    } else {
+      throw error;
+    }
+  }
   return applyPaypalSnapshot(local, paypal, actor);
 }

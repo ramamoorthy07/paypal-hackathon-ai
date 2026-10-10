@@ -39,6 +39,32 @@ export function InvoiceStatusSync({
     }
   }, [invoiceId, router]);
 
+  const simulatePaidWebhook = async (): Promise<void> => {
+    setPending(true);
+    setMessage(null);
+    try {
+      const response = await fetch("/api/webhooks/simulate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          invoiceId,
+          eventType: "INVOICING.INVOICE.PAID",
+        }),
+      });
+      const body = (await response.json()) as { ok: boolean; error?: string };
+      if (!response.ok || !body.ok) {
+        setMessage(body.error ?? "Simulation failed.");
+        return;
+      }
+      setMessage("✓ Webhook verified: Invoice marked as PAID.");
+      router.refresh();
+    } catch {
+      setMessage("Could not dispatch simulated webhook.");
+    } finally {
+      setPending(false);
+    }
+  };
+
   useEffect(() => {
     if (!shouldPoll) {
       return;
@@ -60,16 +86,29 @@ export function InvoiceStatusSync({
   }, [shouldPoll, sync]);
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
+    <div className="flex flex-wrap items-center gap-2.5">
       <button
         type="button"
         disabled={pending}
         onClick={() => void sync()}
-        className="inline-flex h-10 items-center rounded-full border border-zinc-200 px-4 text-sm font-medium text-zinc-800 disabled:opacity-60 dark:border-zinc-700 dark:text-zinc-100"
+        className="inline-flex h-9 items-center rounded-xl border border-zinc-200 bg-white px-3.5 text-xs font-medium text-zinc-800 shadow-xs transition hover:bg-zinc-50 disabled:opacity-60 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
       >
-        {pending ? "Refreshing…" : "Refresh PayPal status"}
+        {pending ? "Refreshing…" : "Sync Status"}
       </button>
-      {message ? <p className="text-sm text-zinc-500">{message}</p> : null}
+
+      {displayStatus === "SENT" || displayStatus === "OVERDUE" ? (
+        <button
+          type="button"
+          disabled={pending}
+          onClick={() => void simulatePaidWebhook()}
+          className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-purple-500/30 bg-purple-500/10 px-3.5 text-xs font-semibold text-purple-600 shadow-xs transition hover:bg-purple-500/20 active:scale-95 disabled:opacity-60 dark:text-purple-300"
+          title="Simulate incoming PayPal INVOICING.INVOICE.PAID webhook"
+        >
+          <span>Simulate Paid (Webhook ⚡)</span>
+        </button>
+      ) : null}
+
+      {message ? <p className="text-xs text-zinc-500">{message}</p> : null}
     </div>
   );
 }

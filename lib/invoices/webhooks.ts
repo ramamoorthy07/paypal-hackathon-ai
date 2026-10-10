@@ -31,7 +31,23 @@ export async function handlePaypalWebhookEvent(raw: unknown): Promise<WebhookHan
     return { duplicate: false, ignored: true, applied: false, reason: "no_invoice_id" };
   }
 
-  const synced = await syncInvoiceByPaypalId(paypalInvoiceId, "webhook");
+  const res =
+    event.resource && typeof event.resource === "object"
+      ? (event.resource as Record<string, unknown>)
+      : undefined;
+  const status =
+    typeof res?.status === "string"
+      ? (res.status as "PAID" | "CANCELLED" | "SENT" | "DRAFT")
+      : event.event_type === "INVOICING.INVOICE.PAID"
+        ? "PAID"
+        : event.event_type === "INVOICING.INVOICE.CANCELLED"
+          ? "CANCELLED"
+          : event.event_type === "INVOICING.INVOICE.REFUNDED"
+            ? "REFUNDED"
+            : undefined;
+
+  const snapshotOverride = status ? { id: paypalInvoiceId, status } : undefined;
+  const synced = await syncInvoiceByPaypalId(paypalInvoiceId, "webhook", snapshotOverride);
   if (!synced) {
     return { duplicate: false, ignored: true, applied: false, reason: "unknown_invoice" };
   }
