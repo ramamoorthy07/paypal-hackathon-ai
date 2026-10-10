@@ -1,9 +1,42 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
+import { isDemoAccessGranted, isExemptPath } from "@/lib/access/demo-code";
 
-export function middleware(): NextResponse {
+export function middleware(request: NextRequest): NextResponse {
+  const { pathname } = request.nextUrl;
+
+  // Static files and Next internals are excluded by matcher, but check isExemptPath explicitly
+  if (isExemptPath(pathname)) {
+    return NextResponse.next();
+  }
+
+  const access = isDemoAccessGranted(request);
+  if (!access) {
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json(
+        { ok: false, error: "Demo access required. Open /unlock." },
+        { status: 401 },
+      );
+    }
+    const unlockUrl = new URL("/unlock", request.url);
+    if (pathname !== "/") {
+      unlockUrl.searchParams.set("from", pathname);
+    }
+    return NextResponse.redirect(unlockUrl);
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/api/chat/:path*", "/api/invoices/confirm", "/api/invoices/:id/remind"],
+  matcher: [
+    /*
+     * Match all request paths except:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - Static asset extensions
+     */
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+  ],
 };
+

@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { denyIfAbusive, resetAbuseStateForTests } from "@/lib/access/abuse";
 import {
   DEMO_ACCESS_COOKIE,
+  createSignedToken,
   isDemoAccessGranted,
   isDemoProtectedPath,
   timingSafeEqualString,
@@ -21,18 +22,23 @@ function request(path: string, init?: { cookie?: string; ip?: string }): Request
 }
 
 describe("demo access paths", () => {
-  it("gates chat, confirm, and remind only", () => {
+  it("gates pages and sensitive endpoints while exempting health, webhooks, cron, mcp, and unlock", () => {
     expect(isDemoProtectedPath("/api/chat")).toBe(true);
     expect(isDemoProtectedPath("/api/invoices/confirm")).toBe(true);
     expect(isDemoProtectedPath("/api/invoices/inv-1/remind")).toBe(true);
+    expect(isDemoProtectedPath("/api/invoices/inv-1/sync")).toBe(true);
+    expect(isDemoProtectedPath("/api/fx")).toBe(true);
+    expect(isDemoProtectedPath("/dashboard")).toBe(true);
+    expect(isDemoProtectedPath("/invoices")).toBe(true);
+
+    expect(isDemoProtectedPath("/unlock")).toBe(false);
+    expect(isDemoProtectedPath("/api/unlock")).toBe(false);
     expect(isDemoProtectedPath("/api/health")).toBe(false);
     expect(isDemoProtectedPath("/api/health/live")).toBe(false);
     expect(isDemoProtectedPath("/api/webhooks/paypal")).toBe(false);
-    expect(isDemoProtectedPath("/api/invoices/inv-1/sync")).toBe(false);
     expect(isDemoProtectedPath("/api/cron/reminders")).toBe(false);
     expect(isDemoProtectedPath("/api/cron/overdue")).toBe(false);
     expect(isDemoProtectedPath("/api/mcp")).toBe(false);
-    expect(isDemoProtectedPath("/api/fx")).toBe(false);
   });
 });
 
@@ -55,7 +61,7 @@ describe("isDemoAccessGranted", () => {
     expect(isDemoAccessGranted(request("/api/chat"))).toBe(true);
   });
 
-  it("requires the httpOnly cookie when DEMO_ACCESS_CODE is set", () => {
+    it("requires the httpOnly cookie when DEMO_ACCESS_CODE is set", () => {
     process.env.DEMO_ACCESS_CODE = "gate-secret";
     expect(isDemoAccessGranted(request("/api/chat"))).toBe(false);
     expect(
@@ -68,6 +74,39 @@ describe("isDemoAccessGranted", () => {
         request("/api/chat", { cookie: `${DEMO_ACCESS_COOKIE}=gate-secret` }),
       ),
     ).toBe(true);
+  });
+
+  it("validates cryptographically signed HMAC session tokens", () => {
+    process.env.DEMO_ACCESS_CODE = "gate-secret";
+    process.env.DEMO_COOKIE_SECRET = "super-secret-key-123";
+    const now = Date.parse("2026-10-10T12:00:00.000Z");
+    const token = createSignedToken({ now, secret: "super-secret-key-123" });
+
+    // Valid signed token
+    expect(
+      isDemoAccessGranted(
+        request("/api/chat", { cookie: `${DEMO_ACCESS_COOKIE}=${token}` }),
+        now,
+      ),
+    ).toBe(true);
+
+    // Tampered signed token
+    const tampered = token.slice(0, -4) + "abcd";
+    expect(
+      isDemoAccessGranted(
+        request("/api/chat", { cookie: `${DEMO_ACCESS_COOKIE}=${tampered}` }),
+        now,
+      ),
+    ).toBe(false);
+
+    // Expired signed token (older than 7 days)
+    const eightDaysLater = now + 8 * 24 * 60 * 60 * 1000;
+    expect(
+      isDemoAccessGranted(
+        request("/api/chat", { cookie: `${DEMO_ACCESS_COOKIE}=${token}` }),
+        eightDaysLater,
+      ),
+    ).toBe(false);
   });
 });
 
