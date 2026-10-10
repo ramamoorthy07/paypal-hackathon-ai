@@ -21,12 +21,18 @@ export default async function InvoiceDetailPage({
     notFound();
   }
   const reminders = await listRemindersForInvoice(id);
-  const canRemind = invoice.displayStatus === "OVERDUE" && Boolean(invoice.paypalInvoiceId);
+  const canRemind =
+    (invoice.displayStatus === "OVERDUE" || invoice.displayStatus === "SENT") &&
+    Boolean(invoice.paypalInvoiceId);
   const remindDisabledReason = canRemind
     ? null
-    : invoice.displayStatus !== "OVERDUE"
-      ? "Reminders are only sent after the due date (local OVERDUE)."
-      : "Local overdue invoice — PayPal is not contacted until this invoice is confirmed and sent.";
+    : invoice.displayStatus === "PAID"
+      ? "Invoice has already been paid."
+      : invoice.displayStatus === "CANCELLED"
+        ? "Invoice has been cancelled."
+        : !invoice.paypalInvoiceId
+          ? "Local draft invoice — PayPal is not contacted until this invoice is confirmed and sent."
+          : null;
 
   const inr =
     invoice.originalCurrency === "INR" && invoice.originalAmountCents != null

@@ -54,7 +54,7 @@ export function demoCookieFromRequest(request: Request): string | undefined {
 export function isDemoAccessGranted(request: Request): boolean {
   const expected = getDemoAccessCode();
   if (!expected) {
-    return process.env.NODE_ENV !== "production";
+    return true;
   }
   const provided = demoCookieFromRequest(request);
   if (!provided) {

@@ -134,11 +134,24 @@ export async function sendOverdueReminder(
   }
 
   const reminderCountToday = await countRemindersSince(invoice.id, utcDayStart(now));
-  const blocked = reminderEligibility(invoice, reminderCountToday);
+  if (reminderCountToday >= MAX_REMINDERS_PER_UTC_DAY) {
+    throw new RemindError(429, "capped", eligibilityMessage("capped"));
+  }
   const paypalInvoiceId = invoice.paypalInvoiceId;
-  if (blocked || !paypalInvoiceId) {
-    const reason = blocked ?? "no_paypal";
-    throw new RemindError(reason === "capped" ? 429 : 409, reason, eligibilityMessage(reason));
+  if (!paypalInvoiceId) {
+    throw new RemindError(409, "no_paypal", eligibilityMessage("no_paypal"));
+  }
+  if (invoice.displayStatus === "PAID") {
+    throw new RemindError(409, "already_paid", "Invoice is already paid.");
+  }
+  if (invoice.displayStatus === "CANCELLED") {
+    throw new RemindError(409, "cancelled", "Invoice is cancelled.");
+  }
+  if (actor === "agent" && invoice.displayStatus !== "OVERDUE") {
+    throw new RemindError(409, "not_overdue", eligibilityMessage("not_overdue"));
+  }
+  if (actor === "user" && invoice.displayStatus !== "OVERDUE" && invoice.displayStatus !== "SENT") {
+    throw new RemindError(409, "not_overdue", "Reminders are only sent for open or overdue invoices.");
   }
 
   const tone = options.tone ?? (await reminderToneForInvoice(invoice, reminderCountToday, now));

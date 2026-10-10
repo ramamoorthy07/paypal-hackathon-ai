@@ -354,45 +354,45 @@ export function ChatApp() {
               </div>
               <div className="flex items-center justify-between border-b border-zinc-100 pb-2 dark:border-zinc-800/80">
                 <span className="text-zinc-500">AI Engine</span>
-                <span className="font-mono text-zinc-200">Azure gpt-5-mini</span>
+                <span className="font-mono text-zinc-800 dark:text-zinc-200">Azure gpt-5-mini</span>
               </div>
               <div className="flex items-center justify-between border-b border-zinc-100 pb-2 dark:border-zinc-800/80">
                 <span className="text-zinc-500">Live FX</span>
-                <span className="text-zinc-200">Frankfurter ECB Cache</span>
+                <span className="text-zinc-800 dark:text-zinc-200">Frankfurter ECB Cache</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-zinc-500">Persistence</span>
-                <span className="text-zinc-200">libSQL / SQLite Active</span>
+                <span className="text-zinc-800 dark:text-zinc-200">libSQL / SQLite Active</span>
               </div>
             </div>
           </div>
 
           {/* HITL Rule Card */}
           <div className="rounded-2xl border border-blue-500/20 bg-gradient-to-br from-blue-500/10 to-transparent p-5 shadow-sm">
-            <div className="flex items-center gap-2 text-xs font-semibold text-blue-400 uppercase">
+            <div className="flex items-center gap-2 text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase">
               <span>🛡️</span>
               <span>Human-in-the-Loop Policy</span>
             </div>
-            <p className="mt-2 text-xs leading-relaxed text-zinc-300">
+            <p className="mt-2 text-xs leading-relaxed text-zinc-700 dark:text-zinc-300">
               The AI parses unstructured conversations and drafts local invoices. PayPal is{" "}
               <strong>never contacted</strong> without your explicit confirmation in the UI.
             </p>
 
-            <div className="mt-4 space-y-2 border-t border-blue-500/20 pt-3 text-[11px] text-zinc-400">
+            <div className="mt-4 space-y-2 border-t border-blue-500/20 pt-3 text-[11px] text-zinc-600 dark:text-zinc-400">
               <div className="flex items-center gap-2">
-                <span className="font-bold text-blue-400">1.</span>
+                <span className="font-bold text-blue-600 dark:text-blue-400">1.</span>
                 <span>Chat parses messy work & terms</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="font-bold text-blue-400">2.</span>
+                <span className="font-bold text-blue-600 dark:text-blue-400">2.</span>
                 <span>Local DRAFT stored safely</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="font-bold text-blue-400">3.</span>
+                <span className="font-bold text-blue-600 dark:text-blue-400">3.</span>
                 <span>Human confirms amount & email</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="font-bold text-blue-400">4.</span>
+                <span className="font-bold text-blue-600 dark:text-blue-400">4.</span>
                 <span>PayPal hosted link generated</span>
               </div>
             </div>
@@ -403,21 +403,21 @@ export function ChatApp() {
             <p className="text-xs font-semibold tracking-wider text-zinc-500 uppercase">
               Active Guardrails
             </p>
-            <ul className="mt-3 space-y-2 text-xs text-zinc-400">
+            <ul className="mt-3 space-y-2 text-xs text-zinc-600 dark:text-zinc-400">
               <li className="flex items-center gap-2">
-                <span className="text-emerald-400">✓</span>
+                <span className="text-emerald-500 dark:text-emerald-400">✓</span>
                 <span>Max invoice amount capped at $5,000</span>
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-emerald-400">✓</span>
+                <span className="text-emerald-500 dark:text-emerald-400">✓</span>
                 <span>Max 2 PayPal reminders / invoice / UTC day</span>
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-emerald-400">✓</span>
+                <span className="text-emerald-500 dark:text-emerald-400">✓</span>
                 <span>Live Frankfurter FX requires explicit confirmation</span>
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-emerald-400">✓</span>
+                <span className="text-emerald-500 dark:text-emerald-400">✓</span>
                 <span>XSS & HTML tags sanitized before storage</span>
               </li>
             </ul>
