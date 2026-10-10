@@ -3,7 +3,7 @@ import { integer, sqliteTable, text, uniqueIndex, index } from "drizzle-orm/sqli
 export const invoiceStatuses = ["DRAFT", "SENT", "PAID", "CANCELLED"] as const;
 export type InvoiceStatus = (typeof invoiceStatuses)[number];
 
-export const auditActors = ["user", "agent", "webhook", "seed"] as const;
+export const auditActors = ["user", "agent", "webhook", "seed", "simulator"] as const;
 export type AuditActor = (typeof auditActors)[number];
 
 export const createdByValues = ["user", "agent", "seed"] as const;

@@ -19,6 +19,8 @@ function formatAction(action: string): string {
       return "Ledger Reconciled from PayPal";
     case "webhook_received":
       return "PayPal Webhook Processed";
+    case "simulate_webhook":
+      return "PayPal Webhook Simulated";
     default:
       return action.replace(/_/g, " ");
   }
@@ -32,6 +34,8 @@ function actorBadge(actor: string) {
       return "bg-blue-500/10 text-blue-400 border-blue-500/20";
     case "webhook":
       return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+    case "simulator":
+      return "bg-amber-500/10 text-amber-500 border-amber-500/30";
     default:
       return "bg-zinc-800 text-zinc-400 border-zinc-700";
   }
@@ -171,11 +175,13 @@ export function ActivityTable({ logs }: { logs: AuditLogRow[] }) {
                       {/* Actor Badge */}
                       <td className="px-4 py-3.5">
                         <span
-                          className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold capitalize ${actorBadge(
-                            entry.actor,
-                          )}`}
+                          className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold ${
+                            entry.actor === "simulator"
+                              ? "uppercase font-bold tracking-wider"
+                              : "capitalize"
+                          } ${actorBadge(entry.actor)}`}
                         >
-                          {entry.actor}
+                          {entry.actor === "simulator" ? "SIMULATED" : entry.actor}
                         </span>
                       </td>
 

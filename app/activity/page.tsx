@@ -23,6 +23,7 @@ export default async function ActivityHistoryPage({
   const agentCount = logs.filter((l) => l.actor === "agent").length;
   const userCount = logs.filter((l) => l.actor === "user").length;
   const webhookCount = logs.filter((l) => l.actor === "webhook").length;
+  const simulatorCount = logs.filter((l) => l.actor === "simulator").length;
 
   const simulatorInvoices = invoices.map((inv) => ({
     id: inv.id,
@@ -121,6 +122,7 @@ export default async function ActivityHistoryPage({
             { id: "agent", label: "Agent Actions", count: agentCount },
             { id: "user", label: "User Confirmations", count: userCount },
             { id: "webhook", label: "PayPal Webhooks", count: webhookCount },
+            { id: "simulator", label: "Simulated Webhooks", count: simulatorCount },
           ].map((item) => {
             const active = (filter ?? "") === item.id;
             const href = item.id ? `/activity?actor=${item.id}` : "/activity";
