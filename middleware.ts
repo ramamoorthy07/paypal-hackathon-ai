@@ -1,17 +1,7 @@
-import { NextResponse, type NextRequest } from "next/server";
-import { isDemoAccessGranted, isDemoProtectedPath } from "@/lib/access/demo-code";
+import { NextResponse } from "next/server";
 
-export function middleware(request: NextRequest): NextResponse {
-  if (!isDemoProtectedPath(request.nextUrl.pathname)) {
-    return NextResponse.next();
-  }
-  if (isDemoAccessGranted(request)) {
-    return NextResponse.next();
-  }
-  return NextResponse.json(
-    { ok: false, error: "Demo access required. Open /unlock." },
-    { status: 401 },
-  );
+export function middleware(): NextResponse {
+  return NextResponse.next();
 }
 
 export const config = {

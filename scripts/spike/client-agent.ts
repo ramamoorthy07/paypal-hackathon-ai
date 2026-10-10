@@ -186,8 +186,6 @@ async function tryKernel(): Promise<PathResult> {
 
 function markdown(results: PathResult[]): string {
   const record = results.find((row) => row.path === "record-payment");
-  const payouts = results.find((row) => row.path === "payouts");
-  const kernel = results.find((row) => row.path === "kernel");
   const working = results.filter((row) => row.success);
   const recommendation =
     record?.success === true

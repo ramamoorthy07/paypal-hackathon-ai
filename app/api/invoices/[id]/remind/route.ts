@@ -25,7 +25,14 @@ export async function POST(
   const { id } = await context.params;
 
   try {
-    const result = await sendOverdueReminder(id, { actor: "user" });
+    const body = (await req.json().catch(() => ({}))) as { tone?: string };
+    const validTones = ["friendly", "firm", "final"] as const;
+    const tone =
+      typeof body.tone === "string" && validTones.includes(body.tone as (typeof validTones)[number])
+        ? (body.tone as (typeof validTones)[number])
+        : undefined;
+
+    const result = await sendOverdueReminder(id, { actor: "user", tone });
     return NextResponse.json({
       ok: true,
       reminderId: result.reminder.id,

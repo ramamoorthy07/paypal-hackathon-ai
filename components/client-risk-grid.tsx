@@ -8,12 +8,13 @@ import {
   type ColDef,
   type ICellRendererParams,
 } from "ag-grid-community";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ClientBehavior } from "@/lib/insights/behavior";
 import { centsToAmountString } from "@/lib/money";
+import { useTheme } from "@/lib/use-theme";
 
 const modules = [AllCommunityModule];
-const theme = themeQuartz.withPart(colorSchemeDark).withParams({
+const darkTheme = themeQuartz.withPart(colorSchemeDark).withParams({
   backgroundColor: "#09090b",
   foregroundColor: "#fafafa",
   borderColor: "#27272a",
@@ -22,54 +23,140 @@ const theme = themeQuartz.withPart(colorSchemeDark).withParams({
   browserColorScheme: "dark",
 });
 
-function WhyCell(params: ICellRendererParams<ClientBehavior>) {
-  const clientId = params.data?.clientId;
-  const [text, setText] = useState<string | null>(null);
-  const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+const lightTheme = themeQuartz.withParams({
+  backgroundColor: "#ffffff",
+  foregroundColor: "#09090b",
+  borderColor: "#e4e4e7",
+  headerBackgroundColor: "#f4f4f5",
+  oddRowBackgroundColor: "#ffffff",
+  browserColorScheme: "light",
+});
 
-  async function explain(): Promise<void> {
-    if (!clientId) {
-      return;
-    }
-    setPending(true);
-    setError(null);
-    try {
-      const response = await fetch("/api/insights/why", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ clientId }),
-      });
-      const body = (await response.json()) as { ok?: boolean; text?: string; error?: string };
-      if (!response.ok || !body.ok || !body.text) {
-        setError(body.error ?? "Could not explain risk.");
-        return;
-      }
-      setText(body.text);
-    } catch {
-      setError("Could not reach the explain endpoint.");
-    } finally {
-      setPending(false);
-    }
-  }
+type GridContextType = {
+  openWhyModal: (client: ClientBehavior) => void;
+  cache: Record<string, string>;
+  pendingId: string | null;
+};
+
+function WhyCell(params: ICellRendererParams<ClientBehavior>) {
+  const client = params.data;
+  if (!client) return null;
+
+  const context = params.context as GridContextType | undefined;
+  if (!context) return null;
+
+  const isPending = context.pendingId === client.clientId;
+  const cachedText = context.cache[client.clientId];
 
   return (
     <div className="flex h-full items-center gap-2 py-1">
       <button
         type="button"
-        disabled={pending}
-        onClick={() => void explain()}
-        className="rounded-full bg-zinc-100 px-2 py-0.5 text-[11px] font-medium text-zinc-900 disabled:opacity-60"
+        disabled={isPending}
+        onClick={() => context.openWhyModal(client)}
+        className="inline-flex items-center gap-1.5 rounded-full border border-zinc-700 bg-zinc-800 px-2.5 py-0.5 text-[11px] font-medium text-zinc-200 transition hover:border-zinc-500 hover:bg-zinc-700 active:scale-95 disabled:opacity-60"
+        title="Open full AI risk breakdown"
       >
-        {pending ? "…" : "Why?"}
+        <span>{isPending ? "Analyzing…" : "Why?"}</span>
+        <span className="text-amber-400">✦</span>
       </button>
-      {error ? <span className="truncate text-[11px] text-red-400">{error}</span> : null}
-      {text ? <span className="truncate text-[11px] text-zinc-300">{text}</span> : null}
+      {cachedText ? (
+        <button
+          type="button"
+          onClick={() => context.openWhyModal(client)}
+          className="truncate text-[11px] text-zinc-400 underline decoration-zinc-600 underline-offset-2 transition hover:text-zinc-200"
+          title="Click to read complete explanation"
+        >
+          {cachedText}
+        </button>
+      ) : null}
     </div>
   );
 }
 
+type ActiveModalState = {
+  client: ClientBehavior;
+  explanation?: string;
+  loading: boolean;
+  error?: string;
+};
+
 export function ClientRiskGrid({ rows }: { rows: ClientBehavior[] }) {
+  const [activeModal, setActiveModal] = useState<ActiveModalState | null>(null);
+  const [cache, setCache] = useState<Record<string, string>>({});
+  const [pendingId, setPendingId] = useState<string | null>(null);
+  const { isDark } = useTheme();
+
+  const openWhyModal = useCallback(
+    async (client: ClientBehavior) => {
+      if (cache[client.clientId]) {
+        setActiveModal({
+          client,
+          explanation: cache[client.clientId],
+          loading: false,
+        });
+        return;
+      }
+
+      setActiveModal({
+        client,
+        loading: true,
+      });
+      setPendingId(client.clientId);
+
+      try {
+        const response = await fetch("/api/insights/why", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ clientId: client.clientId }),
+        });
+        const body = (await response.json()) as { ok?: boolean; text?: string; error?: string };
+        if (!response.ok || !body.ok || !body.text) {
+          setActiveModal({
+            client,
+            loading: false,
+            error: body.error ?? "Could not explain risk.",
+          });
+          return;
+        }
+        setCache((prev) => ({ ...prev, [client.clientId]: body.text! }));
+        setActiveModal({
+          client,
+          explanation: body.text,
+          loading: false,
+        });
+      } catch {
+        setActiveModal({
+          client,
+          loading: false,
+          error: "Could not reach the explain endpoint.",
+        });
+      } finally {
+        setPendingId(null);
+      }
+    },
+    [cache],
+  );
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape" && activeModal) {
+        setActiveModal(null);
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [activeModal]);
+
+  const gridContext = useMemo<GridContextType>(
+    () => ({
+      openWhyModal,
+      cache,
+      pendingId,
+    }),
+    [openWhyModal, cache, pendingId],
+  );
+
   const columnDefs = useMemo<ColDef<ClientBehavior>[]>(
     () => [
       { field: "clientName", headerName: "Client", minWidth: 140, filter: true },
@@ -77,7 +164,7 @@ export function ClientRiskGrid({ rows }: { rows: ClientBehavior[] }) {
       { field: "riskBand", headerName: "Band", minWidth: 90, filter: true },
       {
         headerName: "Why?",
-        minWidth: 220,
+        minWidth: 240,
         flex: 1,
         cellRenderer: WhyCell,
         sortable: false,
@@ -107,24 +194,150 @@ export function ClientRiskGrid({ rows }: { rows: ClientBehavior[] }) {
     [],
   );
 
+  const bandColor = (band: string) => {
+    switch (band) {
+      case "high":
+        return "bg-rose-500/20 text-rose-300 border-rose-500/30";
+      case "medium":
+        return "bg-amber-500/20 text-amber-300 border-amber-500/30";
+      default:
+        return "bg-emerald-500/20 text-emerald-300 border-emerald-500/30";
+    }
+  };
+
   return (
     <section className="space-y-2">
       <div>
         <p className="text-xs font-medium tracking-wide text-zinc-500 uppercase">Client risk</p>
-        <p className="text-xs text-zinc-500">Score from late rate, days late, and open overdue. Why? explains the numbers.</p>
+        <p className="text-xs text-zinc-500">
+          Score from late rate, days late, and open overdue. Click Why? to view the AI explanation.
+        </p>
       </div>
       <AgGridProvider modules={modules}>
         <div className="h-[320px] w-full overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800">
           <AgGridReact<ClientBehavior>
-            theme={theme}
+            theme={isDark ? darkTheme : lightTheme}
             rowData={rows}
             columnDefs={columnDefs}
             defaultColDef={defaultColDef}
+            context={gridContext}
             getRowId={(params) => params.data.clientId}
+            pagination
+            paginationPageSize={5}
+            paginationPageSizeSelector={[5, 10, 20]}
             animateRows={false}
           />
         </div>
       </AgGridProvider>
+
+      {/* Modal Dialog for Risk Explanation */}
+      {activeModal ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
+          onClick={() => setActiveModal(null)}
+        >
+          <div
+            className="w-full max-w-lg space-y-4 rounded-2xl border border-zinc-800 bg-zinc-950 p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-start justify-between border-b border-zinc-800/80 pb-3">
+              <div>
+                <p className="text-xs font-medium tracking-wide text-zinc-400 uppercase">
+                  Client Risk Breakdown
+                </p>
+                <h3 className="text-lg font-semibold text-zinc-100">
+                  {activeModal.client.clientName}
+                </h3>
+                <p className="text-xs text-zinc-400">{activeModal.client.clientEmail}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span
+                  className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold capitalize ${bandColor(
+                    activeModal.client.riskBand,
+                  )}`}
+                >
+                  {activeModal.client.riskBand} Risk ({activeModal.client.riskScore}/100)
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setActiveModal(null)}
+                  className="rounded-lg p-1 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+                  aria-label="Close"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* Metrics cards */}
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/60 p-2.5">
+                <p className="text-[10px] tracking-wider text-zinc-400 uppercase">Late Rate</p>
+                <p className="mt-1 text-sm font-semibold text-zinc-100">
+                  {Math.round(activeModal.client.lateRate * 100)}%
+                </p>
+              </div>
+              <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/60 p-2.5">
+                <p className="text-[10px] tracking-wider text-zinc-400 uppercase">Avg Days to Pay</p>
+                <p className="mt-1 text-sm font-semibold text-zinc-100">
+                  {activeModal.client.avgDaysToPay != null
+                    ? `${activeModal.client.avgDaysToPay}d`
+                    : "N/A"}
+                </p>
+              </div>
+              <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/60 p-2.5">
+                <p className="text-[10px] tracking-wider text-zinc-400 uppercase">Open Overdue</p>
+                <p className="mt-1 text-sm font-semibold text-zinc-100">
+                  {activeModal.client.openOverdueCount} (
+                  ${centsToAmountString(activeModal.client.openOverdueCents)})
+                </p>
+              </div>
+            </div>
+
+            {/* AI Explanation Box */}
+            <div className="rounded-xl border border-zinc-800 bg-zinc-900/80 p-4">
+              <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-amber-400">
+                <span>✦</span>
+                <span>AI Risk Assessment (Azure OpenAI)</span>
+              </div>
+              {activeModal.loading ? (
+                <div className="flex items-center gap-2 py-3 text-xs text-zinc-400">
+                  <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-zinc-400 border-t-transparent" />
+                  <span>Analyzing payment timestamps and calculating behavioral risk...</span>
+                </div>
+              ) : activeModal.error ? (
+                <p className="text-xs text-rose-400">{activeModal.error}</p>
+              ) : (
+                <p className="text-sm leading-relaxed text-zinc-200">
+                  {activeModal.explanation}
+                </p>
+              )}
+            </div>
+
+            <p className="text-[11px] text-zinc-500">
+              Score is calculated deterministically:{" "}
+              <code className="text-zinc-400">
+                clamp(55 × lateRate + 2.5 × avgDaysLate + 8 × overdueCount, 0, 100)
+              </code>
+              . The model only explains verified facts.
+            </p>
+
+            {/* Footer */}
+            <div className="flex justify-end pt-1">
+              <button
+                type="button"
+                onClick={() => setActiveModal(null)}
+                className="rounded-lg bg-zinc-800 px-4 py-1.5 text-xs font-medium text-zinc-200 hover:bg-zinc-700"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

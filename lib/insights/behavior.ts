@@ -43,8 +43,9 @@ export function clientBehaviors(invoices: InvoiceView[], now = Date.now()): Clie
 export function behaviorForClient(
   clientId: string,
   invoices: InvoiceView[],
-  now = Date.now(),
+  _now = Date.now(),
 ): ClientBehavior {
+  void _now;
   const first = invoices[0];
   const paid = invoices.filter(
     (row) => row.status === "PAID" && row.paidAt != null && row.issuedAt != null,

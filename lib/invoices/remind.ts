@@ -124,7 +124,7 @@ function eligibilityMessage(reason: ReminderSkipReason): string {
 
 export async function sendOverdueReminder(
   invoiceId: string,
-  options: { actor?: AuditActor; now?: number } = {},
+  options: { actor?: AuditActor; now?: number; tone?: ReminderTone } = {},
 ): Promise<SendOverdueReminderResult> {
   const now = options.now ?? Date.now();
   const actor = options.actor ?? "user";
@@ -141,7 +141,7 @@ export async function sendOverdueReminder(
     throw new RemindError(reason === "capped" ? 429 : 409, reason, eligibilityMessage(reason));
   }
 
-  const tone = await reminderToneForInvoice(invoice, reminderCountToday, now);
+  const tone = options.tone ?? (await reminderToneForInvoice(invoice, reminderCountToday, now));
   const { copy, source } = await composeReminderCopy(invoice, { now, tone });
   const reminderId = randomUUID();
 
@@ -180,7 +180,7 @@ export async function sendOverdueReminder(
 }
 
 export async function runOverdueReminderSweep(
-  options: { actor?: AuditActor; now?: number } = {},
+  options: { actor?: AuditActor; now?: number; tone?: ReminderTone } = {},
 ): Promise<ReminderSweepResult> {
   const now = options.now ?? Date.now();
   const actor = options.actor ?? "agent";

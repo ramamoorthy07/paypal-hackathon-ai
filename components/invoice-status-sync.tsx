@@ -44,7 +44,7 @@ export function InvoiceStatusSync({
       return;
     }
     let attempts = 0;
-    void sync();
+    const initialTimer = window.setTimeout(() => void sync(), 0);
     const timer = window.setInterval(() => {
       attempts += 1;
       if (attempts >= 6) {
@@ -53,7 +53,10 @@ export function InvoiceStatusSync({
       }
       void sync();
     }, 15_000);
-    return () => window.clearInterval(timer);
+    return () => {
+      window.clearTimeout(initialTimer);
+      window.clearInterval(timer);
+    };
   }, [shouldPoll, sync]);
 
   return (
