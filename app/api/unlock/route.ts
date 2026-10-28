@@ -5,6 +5,7 @@ import {
   createSignedToken,
   demoCookieOptions,
   getDemoAccessCode,
+  publicRequestUrl,
   timingSafeEqualString,
 } from "@/lib/access/demo-code";
 
@@ -41,7 +42,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
 
   const ip = clientIp(request);
-  const unlockUrl = new URL("/unlock", request.url);
+  const unlockUrl = publicRequestUrl("/unlock", request);
 
   if (!checkUnlockRateLimit(ip)) {
     unlockUrl.searchParams.set("error", "rate_limit");
@@ -72,7 +73,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 
   // Determine redirect destination (from target or root)
   const targetPath = from && from.startsWith("/") && !from.startsWith("//") ? from : "/";
-  const response = NextResponse.redirect(new URL(targetPath, request.url), 303);
+  const response = NextResponse.redirect(publicRequestUrl(targetPath, request), 303);
 
   // Generate cryptographic signed token (Web Crypto — Edge-safe)
   const signedToken = await createSignedToken();

@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { isDemoAccessGranted, isExemptPath } from "@/lib/access/demo-code";
+import { isDemoAccessGranted, isExemptPath, publicRequestUrl } from "@/lib/access/demo-code";
 
 export async function middleware(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl;
@@ -17,7 +17,7 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
         { status: 401 },
       );
     }
-    const unlockUrl = new URL("/unlock", request.url);
+    const unlockUrl = publicRequestUrl("/unlock", request);
     if (pathname !== "/") {
       unlockUrl.searchParams.set("from", pathname);
     }

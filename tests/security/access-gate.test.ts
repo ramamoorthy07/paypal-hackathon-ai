@@ -5,6 +5,7 @@ import {
   createSignedToken,
   isDemoAccessGranted,
   isDemoProtectedPath,
+  publicRequestOrigin,
   timingSafeEqualString,
 } from "@/lib/access/demo-code";
 import { resetEnvCache } from "@/lib/core/env";
@@ -46,6 +47,32 @@ describe("timingSafeEqualString", () => {
     expect(timingSafeEqualString("secret", "secret")).toBe(true);
     expect(timingSafeEqualString("secret", "wrong")).toBe(false);
     expect(timingSafeEqualString("ab", "abcd")).toBe(false);
+  });
+});
+
+describe("publicRequestOrigin", () => {
+  afterEach(() => {
+    delete process.env.APP_URL;
+    delete process.env.NEXT_PUBLIC_APP_URL;
+  });
+
+  it("prefers x-forwarded headers over the container bind address", () => {
+    const request = new Request("https://0.0.0.0:10000/api/unlock", {
+      headers: {
+        host: "0.0.0.0:10000",
+        "x-forwarded-host": "paypilot-docker.onrender.com",
+        "x-forwarded-proto": "https",
+      },
+    });
+    expect(publicRequestOrigin(request)).toBe("https://paypilot-docker.onrender.com");
+  });
+
+  it("falls back to APP_URL when only the bind address is available", () => {
+    process.env.APP_URL = "https://paypilot-docker.onrender.com";
+    const request = new Request("https://0.0.0.0:10000/api/unlock", {
+      headers: { host: "0.0.0.0:10000" },
+    });
+    expect(publicRequestOrigin(request)).toBe("https://paypilot-docker.onrender.com");
   });
 });
 

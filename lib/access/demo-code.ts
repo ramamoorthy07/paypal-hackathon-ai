@@ -6,6 +6,55 @@ export function getDemoAccessCode(): string | undefined {
   return value && value.length > 0 ? value : undefined;
 }
 
+function firstHeaderValue(header: string | null): string | undefined {
+  const value = header?.split(",")[0]?.trim();
+  return value && value.length > 0 ? value : undefined;
+}
+
+function isLoopbackOrWildcardHost(host: string): boolean {
+  const hostname = host.replace(/^\[|\]$/g, "").split(":")[0]?.toLowerCase() ?? "";
+  return (
+    hostname === "0.0.0.0" ||
+    hostname === "::" ||
+    hostname === "127.0.0.1" ||
+    hostname === "::1" ||
+    hostname === "localhost"
+  );
+}
+
+/**
+ * Public site origin for redirects behind reverse proxies (Render, etc.).
+ * `request.url` can be the container bind address (`https://0.0.0.0:10000`).
+ */
+export function publicRequestOrigin(request: Request): string {
+  const forwardedHost = firstHeaderValue(request.headers.get("x-forwarded-host"));
+  const hostHeader = firstHeaderValue(request.headers.get("host"));
+  const host = forwardedHost || hostHeader;
+  const url = new URL(request.url);
+  const forwardedProto = firstHeaderValue(request.headers.get("x-forwarded-proto"));
+
+  if (host && !isLoopbackOrWildcardHost(host)) {
+    const proto = forwardedProto || (url.protocol === "https:" ? "https" : "http");
+    return `${proto}://${host}`;
+  }
+
+  for (const key of ["APP_URL", "NEXT_PUBLIC_APP_URL"] as const) {
+    const raw = process.env[key]?.trim();
+    if (!raw) continue;
+    try {
+      return new URL(raw).origin;
+    } catch {
+      /* ignore invalid */
+    }
+  }
+
+  return url.origin;
+}
+
+export function publicRequestUrl(path: string, request: Request): URL {
+  return new URL(path, publicRequestOrigin(request));
+}
+
 export function getCookieSecret(): string {
   const secret = process.env.DEMO_COOKIE_SECRET?.trim() || process.env.SESSION_SECRET?.trim();
   if (secret && secret.length > 0) {

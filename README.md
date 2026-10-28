@@ -9,7 +9,7 @@ Parser evals: golden **40/40**; held-out in [docs/EVALS.md](docs/EVALS.md). Live
 ## Judge quick start
 
 1. Open **https://paypilot-docker.onrender.com** (first hit can take ~60s on Render free).
-2. If chat/confirm is gated, open `/unlock` with the Devpost demo code.
+2. Open `/unlock` and enter demo code **`paypilot`**.
 3. On Chat, paste: `Invoice Acme Studio $120 for a logo refresh. Email buyer@personal.example.com. USD.`
 4. Confirm the **local DRAFT** card. Copy the PayPal sandbox share link.
 5. Open `/dashboard` (AG Grid + 6-week forecast + client risk). Totals are computed in code.
