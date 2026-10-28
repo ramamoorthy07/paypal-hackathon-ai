@@ -87,6 +87,7 @@ export async function POST(req: Request): Promise<NextResponse> {
 
     // Audit log with actor "simulator"
     await insertAuditLog({
+      id: randomUUID(),
       actor: "simulator",
       action: "simulate_webhook",
       invoiceId: localInvoice.id,
