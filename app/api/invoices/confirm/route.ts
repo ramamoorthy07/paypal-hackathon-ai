@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { denyIfAbusive } from "@/lib/access/abuse";
-import { getEnv } from "@/lib/env";
-import { ConfirmError, confirmInvoice } from "@/lib/invoices/confirm";
+import { getEnv } from "@/lib/core/env";
+import { ConfirmError, confirmInvoice } from "@/lib/invoices/actions/confirm";
 import { PayPalError } from "@/lib/paypal/errors";
 
 export const dynamic = "force-dynamic";

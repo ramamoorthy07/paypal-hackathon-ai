@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { ActivityTable } from "@/components/activity-table";
-import { KpiCard } from "@/components/kpi-card";
-import { WebhookSimulator } from "@/components/webhook-simulator";
+import { ActivityTable } from "@/components/activity/activity-table";
+import { KpiCard } from "@/components/ui/kpi-card";
+import { WebhookSimulator } from "@/components/activity/webhook-simulator";
 import { listRecentAuditLogs } from "@/lib/db/repositories/audit-log";
 import { listInvoiceViews } from "@/lib/invoices/views";
 

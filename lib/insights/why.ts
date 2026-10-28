@@ -1,7 +1,7 @@
 import { generateText } from "ai";
 import type { ClientBehavior } from "@/lib/insights/behavior";
-import { getEnv } from "@/lib/env";
-import { centsToAmountString } from "@/lib/money";
+import { getEnv } from "@/lib/core/env";
+import { centsToAmountString } from "@/lib/core/money";
 import { languageModel } from "@/lib/llm/provider";
 import { plainTextFromGenerateResult } from "@/lib/llm/plain-text";
 

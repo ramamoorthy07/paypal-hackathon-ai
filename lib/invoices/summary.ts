@@ -1,5 +1,5 @@
 import { generateText } from "ai";
-import { getEnv } from "@/lib/env";
+import { getEnv } from "@/lib/core/env";
 import { earningsSnapshot, monthlySummaryPrompt, type EarningsSnapshot } from "@/lib/invoices/earnings";
 import { listInvoiceViews } from "@/lib/invoices/views";
 import { languageModel } from "@/lib/llm/provider";

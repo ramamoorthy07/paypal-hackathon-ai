@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getEnv } from "@/lib/env";
+import { getEnv } from "@/lib/core/env";
 import { demoCookieFromRequest, isDemoAccessGranted, verifySignedToken } from "@/lib/access/demo-code";
 import { atomicIncrementRateLimit } from "@/lib/db/repositories/rate-limits";
 

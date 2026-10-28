@@ -1,6 +1,6 @@
 import { PayPalAgentToolkit } from "@paypal/agent-toolkit/ai-sdk";
-import { centsToAmountString } from "@/lib/money";
-import { getEnv } from "@/lib/env";
+import { centsToAmountString } from "@/lib/core/money";
+import { getEnv } from "@/lib/core/env";
 import type { LineItem } from "@/lib/db/schema";
 import { getInvoice, invoiceIdFromHref } from "@/lib/paypal/invoicing";
 

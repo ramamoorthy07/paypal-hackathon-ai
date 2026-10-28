@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { InvoiceOpenRefresh } from "@/components/invoice-open-refresh";
-import { InvoicesTable } from "@/components/invoices-table";
-import { KpiCard } from "@/components/kpi-card";
-import { PaypalReconcileButton } from "@/components/paypal-reconcile-button";
+import { InvoiceOpenRefresh } from "@/components/invoices/invoice-open-refresh";
+import { InvoicesTable } from "@/components/invoices/invoices-table";
+import { KpiCard } from "@/components/ui/kpi-card";
+import { PaypalReconcileButton } from "@/components/invoices/paypal-reconcile-button";
 import { listInvoiceViews } from "@/lib/invoices/views";
-import { centsToAmountString } from "@/lib/money";
+import { centsToAmountString } from "@/lib/core/money";
 import type { DisplayStatus } from "@/lib/invoices/state";
 
 export const dynamic = "force-dynamic";

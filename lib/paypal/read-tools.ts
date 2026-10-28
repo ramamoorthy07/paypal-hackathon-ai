@@ -1,5 +1,9 @@
+/**
+ * PayPal Agent Toolkit read-only tools (list/search invoices in sandbox).
+ * Local insight tools for chat live in `@/lib/agent/insight-tools`.
+ */
 import { PayPalAgentToolkit } from "@paypal/agent-toolkit/ai-sdk";
-import { getEnv } from "@/lib/env";
+import { getEnv } from "@/lib/core/env";
 
 export const PAYPAL_READ_ACTIONS = {
   invoices: {

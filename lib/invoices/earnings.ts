@@ -1,4 +1,4 @@
-import { centsToAmountString, isoDateFromMs } from "@/lib/money";
+import { centsToAmountString, isoDateFromMs } from "@/lib/core/money";
 import type { ClientBehavior, RiskBand } from "@/lib/insights/behavior";
 import type { InvoiceView } from "@/lib/invoices/views";
 import type { DisplayStatus } from "@/lib/invoices/state";

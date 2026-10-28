@@ -1,6 +1,6 @@
 import { evaluateProposal, type ProposalRejection } from "@/lib/agent/propose";
 import { invoiceProposalSchema, type InvoiceProposal } from "@/lib/agent/schema";
-import { parseChatAmount } from "@/lib/money";
+import { parseChatAmount } from "@/lib/core/money";
 
 export type EvalCase = {
   id: string;

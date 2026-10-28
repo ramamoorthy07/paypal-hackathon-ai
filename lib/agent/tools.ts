@@ -1,6 +1,6 @@
 import { tool } from "ai";
 import { saveProposedInvoice } from "@/lib/agent/propose-save";
-import { getCashForecast, getClientRisk, listOverdue } from "@/lib/agent/read-tools";
+import { getCashForecast, getClientRisk, listOverdue } from "@/lib/agent/insight-tools";
 import { invoiceProposalSchema } from "@/lib/agent/schema";
 
 export const proposeInvoice = tool({

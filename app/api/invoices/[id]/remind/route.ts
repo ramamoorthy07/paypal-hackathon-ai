@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { denyIfAbusive } from "@/lib/access/abuse";
-import { getEnv } from "@/lib/env";
-import { RemindError, sendOverdueReminder } from "@/lib/invoices/remind";
+import { getEnv } from "@/lib/core/env";
+import { RemindError, sendOverdueReminder } from "@/lib/invoices/actions/remind";
 import { PayPalError } from "@/lib/paypal/errors";
 
 export const dynamic = "force-dynamic";

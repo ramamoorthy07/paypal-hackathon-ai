@@ -5,7 +5,7 @@ import { insertAuditLog } from "@/lib/db/repositories/audit-log";
 import { upsertClientByEmail } from "@/lib/db/repositories/clients";
 import { insertInvoice } from "@/lib/db/repositories/invoices";
 import type { LineItem } from "@/lib/db/schema";
-import { getEnv } from "@/lib/env";
+import { getEnv } from "@/lib/core/env";
 
 export type ProposeSource = "chat" | "mcp";
 

@@ -1,6 +1,6 @@
 import { clientBehaviors, type ClientBehavior } from "@/lib/insights/behavior";
 import { cashForecast, forecastFacts, type CashForecast } from "@/lib/insights/forecast";
-import { centsToAmountString, isoDateFromMs } from "@/lib/money";
+import { centsToAmountString, isoDateFromMs } from "@/lib/core/money";
 import { listInvoiceViews, type InvoiceView } from "@/lib/invoices/views";
 
 export type InsightsSnapshot = {

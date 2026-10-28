@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { getEnv } from "@/lib/env";
+import { getEnv } from "@/lib/core/env";
 import { paypalFetch } from "@/lib/paypal/client";
 import { paypalErrorFromHttp } from "@/lib/paypal/errors";
 

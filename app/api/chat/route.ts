@@ -6,7 +6,7 @@ import { agentSystemPrompt } from "@/lib/agent/prompt";
 import { chatStreamErrorMessage } from "@/lib/agent/stream-error";
 import { agentTools } from "@/lib/agent/tools";
 import { denyIfAbusive } from "@/lib/access/abuse";
-import { getEnv } from "@/lib/env";
+import { getEnv } from "@/lib/core/env";
 import { getInrUsdQuote } from "@/lib/fx/quote";
 import { languageModel } from "@/lib/llm/provider";
 import { paypalReadOnlyAgentTools } from "@/lib/paypal/read-tools";

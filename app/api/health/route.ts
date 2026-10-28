@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { pingDb } from "@/lib/db";
-import { getEnv } from "@/lib/env";
+import { getEnv } from "@/lib/core/env";
 import { publicDb, publicEnv, publicLlm, publicPaypal, type CheckResult } from "@/lib/health/public";
 import { pingLlm } from "@/lib/llm/ping";
 import { PayPalError, pingPaypalInvoices } from "@/lib/paypal/client";

@@ -1,4 +1,4 @@
-import { isoDateFromMs } from "@/lib/money";
+import { isoDateFromMs } from "@/lib/core/money";
 import type { InvoiceView } from "@/lib/invoices/views";
 import { clientBehaviors, type ClientBehavior } from "@/lib/insights/behavior";
 

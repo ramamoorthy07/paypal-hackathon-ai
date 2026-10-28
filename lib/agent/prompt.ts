@@ -1,4 +1,4 @@
-import { centsToAmountString } from "@/lib/money";
+import { centsToAmountString } from "@/lib/core/money";
 
 export function agentSystemPrompt(options: {
   maxInvoiceUsd: number;

@@ -1,7 +1,7 @@
 import type { InvoiceProposal } from "@/lib/agent/schema";
 import type { LineItem } from "@/lib/db/schema";
-import { usdCentsFromInrPaise } from "@/lib/money";
-import { sanitizeEmail, sanitizeUntrustedText } from "@/lib/sanitize";
+import { usdCentsFromInrPaise } from "@/lib/core/money";
+import { sanitizeEmail, sanitizeUntrustedText } from "@/lib/core/sanitize";
 
 export type ProposalLimits = {
   maxInvoiceUsd: number;

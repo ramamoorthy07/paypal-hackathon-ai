@@ -1,4 +1,4 @@
-import { RouteLoading } from "@/components/route-loading";
+import { RouteLoading } from "@/components/ui/route-loading";
 
 export default function Loading() {
   return <RouteLoading label="Loading dashboard…" />;

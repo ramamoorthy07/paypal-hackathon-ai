@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { handleOverdueCron } from "@/lib/invoices/cron-http";
+import { handleOverdueCron } from "@/lib/cron/http";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;

@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { isDemoAccessGranted } from "@/lib/access/demo-code";
 import { insertAuditLog } from "@/lib/db/repositories/audit-log";
 import { getInvoiceById } from "@/lib/db/repositories/invoices";
-import { handlePaypalWebhookEvent } from "@/lib/invoices/webhooks";
+import { handlePaypalWebhookEvent } from "@/lib/invoices/webhook-handlers";
 
 export const dynamic = "force-dynamic";
 

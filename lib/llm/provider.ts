@@ -1,7 +1,7 @@
 import { createAzure } from "@ai-sdk/azure";
 import { openai } from "@ai-sdk/openai";
 import { azureOpenAiBaseUrl } from "@/lib/llm/azure";
-import type { Env } from "@/lib/env";
+import type { Env } from "@/lib/core/env";
 
 export function languageModel(env: Env) {
   if (env.AZURE_OPENAI_ENDPOINT) {

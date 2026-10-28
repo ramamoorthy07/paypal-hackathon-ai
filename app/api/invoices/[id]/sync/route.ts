@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getEnv } from "@/lib/env";
-import { SyncError, syncInvoiceFromPaypal } from "@/lib/invoices/sync";
+import { getEnv } from "@/lib/core/env";
+import { SyncError, syncInvoiceFromPaypal } from "@/lib/invoices/actions/sync";
 import { toInvoiceView } from "@/lib/invoices/views";
 import { getClientById } from "@/lib/db/repositories/clients";
 import { PayPalError } from "@/lib/paypal/errors";

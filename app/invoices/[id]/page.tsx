@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { InvoiceQr } from "@/components/invoice-qr";
-import { InvoiceRemind } from "@/components/invoice-remind";
-import { InvoiceStatusSync } from "@/components/invoice-status-sync";
-import { StatusBadge } from "@/components/status-badge";
+import { InvoiceQr } from "@/components/invoices/invoice-qr";
+import { InvoiceRemind } from "@/components/invoices/invoice-remind";
+import { InvoiceStatusSync } from "@/components/invoices/invoice-status-sync";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { listRemindersForInvoice } from "@/lib/db/repositories/reminders";
 import { getInvoiceView } from "@/lib/invoices/views";
-import { centsToAmountString, isoDateFromMs } from "@/lib/money";
+import { centsToAmountString, isoDateFromMs } from "@/lib/core/money";
 
 export const dynamic = "force-dynamic";
 

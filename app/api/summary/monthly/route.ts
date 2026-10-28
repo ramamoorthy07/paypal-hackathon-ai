@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { denyIfAbusive } from "@/lib/access/abuse";
-import { getEnv } from "@/lib/env";
+import { getEnv } from "@/lib/core/env";
 import { generateMonthlySummary } from "@/lib/invoices/summary";
 
 export const dynamic = "force-dynamic";

@@ -1,5 +1,5 @@
 import { loadEnvConfig } from "@next/env";
-import { getEnv, paypalApiBase } from "@/lib/env";
+import { getEnv, paypalApiBase } from "@/lib/core/env";
 import { getAccessToken } from "@/lib/paypal/client";
 
 const EVENT_TYPES = [

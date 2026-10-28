@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getEnv } from "@/lib/env";
-import { handlePaypalWebhookEvent } from "@/lib/invoices/webhooks";
+import { getEnv } from "@/lib/core/env";
+import { handlePaypalWebhookEvent } from "@/lib/invoices/webhook-handlers";
 import { PayPalError } from "@/lib/paypal/errors";
 import {
   paypalWebhookHeadersFromRequest,

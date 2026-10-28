@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getEnv } from "@/lib/env";
-import { reconcileInvoicesFromPaypal } from "@/lib/invoices/reconcile";
+import { getEnv } from "@/lib/core/env";
+import { reconcileInvoicesFromPaypal } from "@/lib/invoices/actions/reconcile";
 import { PayPalError } from "@/lib/paypal/errors";
 
 export const dynamic = "force-dynamic";

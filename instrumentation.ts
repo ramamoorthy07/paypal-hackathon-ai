@@ -3,7 +3,7 @@ export async function register(): Promise<void> {
     return;
   }
 
-  const { warnIfEnvInvalid } = await import("./lib/env");
+  const { warnIfEnvInvalid } = await import("./lib/core/env");
   warnIfEnvInvalid({ fatal: process.env.NODE_ENV === "production" });
 
   const { initDb } = await import("./lib/db");
@@ -18,9 +18,9 @@ export async function register(): Promise<void> {
   }
 
   try {
-    const { getEnv } = await import("./lib/env");
+    const { getEnv } = await import("./lib/core/env");
     getEnv();
-    const { reconcileInvoicesFromPaypal } = await import("./lib/invoices/reconcile");
+    const { reconcileInvoicesFromPaypal } = await import("./lib/invoices/actions/reconcile");
     const summary = await reconcileInvoicesFromPaypal({ actor: "webhook" });
     console.log(
       `PayPal reconcile: scanned=${summary.scanned} updated=${summary.updated} inserted=${summary.inserted} skipped=${summary.skipped} errors=${summary.errors}`,

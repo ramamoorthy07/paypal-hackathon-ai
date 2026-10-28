@@ -1,8 +1,8 @@
 import { loadEnvConfig } from "@next/env";
 import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { paypalApiBase, resetEnvCache } from "@/lib/env";
-import { centsToAmountString } from "@/lib/money";
+import { paypalApiBase, resetEnvCache } from "@/lib/core/env";
+import { centsToAmountString } from "@/lib/core/money";
 import { getAccessToken } from "@/lib/paypal/client";
 import {
   createDraftInvoice,
@@ -244,7 +244,7 @@ async function main(): Promise<void> {
       skip("payouts", "PAYPAL_CLIENT_ID / SECRET missing"),
       skip("kernel", "Not reached"),
     ]);
-    writeFileSync(resolve(process.cwd(), "docs/SPIKE_CLIENT_AGENT.md"), report);
+    writeFileSync(resolve(process.cwd(), "docs/spikes/CLIENT_AGENT.md"), report);
     console.log(report);
     return;
   }
@@ -255,7 +255,7 @@ async function main(): Promise<void> {
   results.push(await tryKernel());
 
   const report = markdown(results);
-  writeFileSync(resolve(process.cwd(), "docs/SPIKE_CLIENT_AGENT.md"), report);
+  writeFileSync(resolve(process.cwd(), "docs/spikes/CLIENT_AGENT.md"), report);
   process.stdout.write(report);
   process.stdout.write("\n");
 }

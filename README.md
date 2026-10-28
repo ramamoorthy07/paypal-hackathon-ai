@@ -25,14 +25,17 @@ chat → proposeInvoice (local DRAFT) → Confirm → PayPal share link
 ## Layout
 
 ```text
-app/            pages + API routes
-components/     UI
-lib/            agent | paypal | invoices | insights | db | access | llm | mcp
-scripts/        eval + spike (hackathon evidence; no demo seed)
-tests/          unit tests — PayPal HTTP is stubbed so tests never send invoices
-docs/           EVALS, MCP, TOOLKIT, SPIKE, SMOKE, screenshots
-postman/        sponsor collection (use a real draft id after chat)
+app/            pages + API routes (Next.js routing — leave as-is)
+components/     ui | layout | chat | invoices | dashboard | activity
+hooks/          client hooks (theme)
+lib/            core | access | cron | agent | paypal | invoices | insights | db | llm | mcp
+scripts/        eval + spike runners
+tests/          mirrors lib domains (agent, paypal, invoices, security, …)
+docs/           EVALS, MCP, TOOLKIT, SMOKE, screenshots, spikes/
+postman/        sponsor collection
 ```
+
+Full tree: [STRUCTURE.md](STRUCTURE.md).
 
 ## Sponsors used
 
@@ -123,7 +126,7 @@ Shooting script: [DEMO.md](DEMO.md).
 
 ## What exists
 
-- Env validation (`lib/env.ts`) — fails fast with missing-variable names, never logs secrets
+- Env validation (`lib/core/env.ts`) — fails fast with missing-variable names, never logs secrets
 - `/api/health` and `/api/health/live`
 - Drizzle schema and repositories (empty DB until a real invoice is saved)
 - `/api/chat` — streaming agent with `proposeInvoice` (local `DRAFT` only) plus read tools `getCashForecast`, `getClientRisk`, `listOverdue`
@@ -140,7 +143,7 @@ Shooting script: [DEMO.md](DEMO.md).
 
 ## Security
 
-- **HITL:** the model can `proposeInvoice` (local `DRAFT`) and read cash/risk/overdue (plus optional PayPal Agent Toolkit `list_invoices` / `search_invoicing`). After Confirm, create/send prefer the toolkit; due dates still use REST. See [docs/TOOLKIT_CONFIRM.md](docs/TOOLKIT_CONFIRM.md) and [docs/SPIKE_CLIENT_AGENT.md](docs/SPIKE_CLIENT_AGENT.md).
+- **HITL:** the model can `proposeInvoice` (local `DRAFT`) and read cash/risk/overdue (plus optional PayPal Agent Toolkit `list_invoices` / `search_invoicing`). After Confirm, create/send prefer the toolkit; due dates still use REST. See [docs/TOOLKIT_CONFIRM.md](docs/TOOLKIT_CONFIRM.md) and [docs/spikes/CLIENT_AGENT.md](docs/spikes/CLIENT_AGENT.md).
 - **Caps:** `MAX_INVOICE_USD` (default 5000), 2 PayPal reminders per invoice per UTC day, per-IP rate limit, daily LLM and PayPal write budgets.
 - **Sanitization:** untrusted names, notes, and emails are stripped of HTML, schemes, and control characters before storage.
 - **Access gate:** production chat, confirm, and remind require a `DEMO_ACCESS_CODE` cookie from `/unlock`. Health and the PayPal webhook are public.

@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { CashForecastChart } from "@/components/cash-forecast-chart";
-import { ClientRiskGrid } from "@/components/client-risk-grid";
-import { EarningsGrid } from "@/components/earnings-grid";
-import { KpiCard } from "@/components/kpi-card";
-import { MonthlySummary } from "@/components/monthly-summary";
+import { CashForecastChart } from "@/components/dashboard/cash-forecast-chart";
+import { ClientRiskGrid } from "@/components/dashboard/client-risk-grid";
+import { EarningsGrid } from "@/components/dashboard/earnings-grid";
+import { KpiCard } from "@/components/ui/kpi-card";
+import { MonthlySummary } from "@/components/dashboard/monthly-summary";
 import { earningsSnapshot, toEarningsRow } from "@/lib/invoices/earnings";
 import { insightsSnapshot } from "@/lib/insights/queries";
-import { centsToAmountString } from "@/lib/money";
+import { centsToAmountString } from "@/lib/core/money";
 
 export const dynamic = "force-dynamic";
 

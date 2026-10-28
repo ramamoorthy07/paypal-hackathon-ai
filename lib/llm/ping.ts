@@ -1,5 +1,5 @@
 import { azureOpenAiBaseUrl } from "@/lib/llm/azure";
-import type { Env } from "@/lib/env";
+import type { Env } from "@/lib/core/env";
 
 export async function pingLlm(env: Env): Promise<{
   provider: "azure" | "openai";
