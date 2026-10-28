@@ -33,7 +33,8 @@ describe("webhook simulator security gate (A3)", () => {
   });
 
   it("blocks simulator in production builds unless ENABLE_SIMULATOR=true", async () => {
-    process.env.NODE_ENV = "production";
+    // NODE_ENV is typed readonly on ProcessEnv; tests still need to flip it at runtime.
+    (process.env as Record<string, string | undefined>).NODE_ENV = "production";
     delete process.env.ENABLE_SIMULATOR;
 
     const req = new Request("http://localhost:3000/api/webhooks/simulate", {
@@ -53,7 +54,7 @@ describe("webhook simulator security gate (A3)", () => {
   });
 
   it("permits simulator in production if ENABLE_SIMULATOR=true and authenticated", async () => {
-    process.env.NODE_ENV = "production";
+    (process.env as Record<string, string | undefined>).NODE_ENV = "production";
     process.env.ENABLE_SIMULATOR = "true";
 
     // Will proceed past gate checks to invoice lookup
