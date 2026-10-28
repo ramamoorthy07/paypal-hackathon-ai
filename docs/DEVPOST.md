@@ -22,8 +22,8 @@ PayPilot turns messy freelance chat into PayPal sandbox invoices with human-in-t
 1. Warm: `curl -fsS https://paypilot-docker.onrender.com/api/health/live`  
 2. Unlock with `paypilot`  
 3. Chat → local draft card → **Confirm & get share link**  
-4. `/dashboard` AG Grid + forecast (demo ledger if empty)  
-5. Overdue invoice → remind (or Activity simulator **Mark Paid**)  
+4. `/dashboard` AG Grid + forecast (from invoices you just confirmed)  
+5. Overdue invoice → remind (or Activity simulator **Mark Paid** if enabled)  
 6. Close on HITL one-liner  
 
 Upload 1080p + the five PNGs in [docs/screenshots](screenshots).

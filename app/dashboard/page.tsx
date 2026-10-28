@@ -71,9 +71,9 @@ export default async function DashboardPage() {
             No invoices yet — draft one in Chat to populate this dashboard.
           </p>
           <p className="mx-auto mt-1 max-w-md text-xs text-zinc-600 dark:text-zinc-400">
-            Try: “Invoice Acme Studio $120 for a logo refresh. Email buyer@personal.example.com. USD.”
-            Confirm the card so PayPal sandbox + AG Grid have real rows. If this stays empty after a
-            Render restart, Turso is not wired (file DB was wiped).
+            Draft and confirm an invoice in Chat so PayPal sandbox and this dashboard have real rows.
+            An empty ledger after a Render restart usually means the file DB was wiped — point
+            production at Turso.
           </p>
           <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
             <Link

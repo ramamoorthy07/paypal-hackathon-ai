@@ -68,7 +68,7 @@ curl -sS http://localhost:3000/api/health | python3 -m json.tool
 
 Without PayPal/OpenAI keys the server still starts. Health will be HTTP 503 with `checks.env.ok: false` and `checks.db.ok: true` (`invoiceCount` 0 until you create invoices). After you fill `.env.local`, restart `npm run dev` and expect `"ok": true`.
 
-Local default is libSQL file `data/paypilot.db` (gitignored). Production should use Turso (`DATABASE_URL` + `DATABASE_AUTH_TOKEN`) so data survives Render restarts. With `SEED_ON_BOOT=true`, an empty ledger auto-loads three demo invoices for judges (`npm run demo:stage-ledger` or `POST /api/demo/stage-ledger`). Provision Turso with `scripts/provision-turso.sh` after `turso auth login`.
+There is **no demo seed**. Local default is libSQL file `data/paypilot.db` (gitignored). Production should use Turso (`DATABASE_URL` + `DATABASE_AUTH_TOKEN`) so data survives Render restarts.
 
 ```bash
 npm test
