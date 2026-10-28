@@ -97,8 +97,10 @@ export default async function ActivityHistoryPage({
         />
       </div>
 
-      {/* Interactive Webhook Simulator for Judges & Testing */}
-      <WebhookSimulator invoices={simulatorInvoices} />
+      {/* Simulator only when explicitly enabled in production (ENABLE_SIMULATOR=true). */}
+      {process.env.NODE_ENV !== "production" || process.env.ENABLE_SIMULATOR === "true" ? (
+        <WebhookSimulator invoices={simulatorInvoices} />
+      ) : null}
 
       {/* Filter Tabs */}
       <div className="flex flex-wrap items-center justify-between gap-3">

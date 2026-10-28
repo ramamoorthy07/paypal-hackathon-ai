@@ -90,6 +90,14 @@ export async function initDb(): Promise<AppDatabase> {
       const database = drizzle(client, { schema });
       await migrate(database, { migrationsFolder: resolve(process.cwd(), "drizzle") });
       g.__paypilotDb = database;
+      // Lazy import avoids circular init during migrate.
+      const { maybeSeedDemoLedgerOnBoot } = await import("@/lib/db/seed-demo-ledger");
+      await maybeSeedDemoLedgerOnBoot().catch((error) => {
+        console.error(
+          "SEED_ON_BOOT failed",
+          error instanceof Error ? error.message : error,
+        );
+      });
       return database;
     })();
   }

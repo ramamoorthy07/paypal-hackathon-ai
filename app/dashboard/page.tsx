@@ -64,18 +64,31 @@ export default async function DashboardPage() {
 
       {invoices.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-zinc-300 bg-white p-8 text-center dark:border-zinc-800 dark:bg-zinc-950">
-          <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-            No invoices in the ledger yet.
+          <p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400">
+            Empty ledger
           </p>
-          <p className="mt-1 text-xs text-zinc-500">
-            Head to the Chat Assistant to draft your first invoice proposal with natural language.
+          <p className="mt-2 text-sm font-medium text-zinc-800 dark:text-zinc-200">
+            No invoices yet — draft one in Chat to populate this dashboard.
           </p>
-          <Link
-            href="/"
-            className="mt-4 inline-flex items-center rounded-lg bg-blue-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-blue-500"
-          >
-            Open Chat Assistant
-          </Link>
+          <p className="mx-auto mt-1 max-w-md text-xs text-zinc-600 dark:text-zinc-400">
+            Try: “Invoice Acme Studio $120 for a logo refresh. Email buyer@personal.example.com. USD.”
+            Confirm the card so PayPal sandbox + AG Grid have real rows. If this stays empty after a
+            Render restart, Turso is not wired (file DB was wiped).
+          </p>
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+            <Link
+              href="/"
+              className="inline-flex items-center rounded-lg bg-blue-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-blue-500"
+            >
+              Open Chat Assistant
+            </Link>
+            <Link
+              href="/unlock"
+              className="inline-flex items-center rounded-lg border border-zinc-200 bg-white px-3.5 py-2 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
+            >
+              Unlock demo first
+            </Link>
+          </div>
         </div>
       ) : null}
 

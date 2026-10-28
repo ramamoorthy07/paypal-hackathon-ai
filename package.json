@@ -11,6 +11,7 @@
     "eval": "tsx scripts/eval.ts",
     "spike:tools": "tsx scripts/spike/list-toolkit-tools.ts",
     "spike:client-agent": "tsx scripts/spike/client-agent.ts",
+    "demo:stage-ledger": "tsx scripts/stage-demo-ledger.ts",
     "test": "vitest run"
   },
   "engines": {

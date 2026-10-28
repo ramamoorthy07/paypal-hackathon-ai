@@ -2,29 +2,39 @@
 
 Target: `https://paypilot-docker.onrender.com`
 
-> Historical snapshot from **2026-10-08**. On the current branch, `/unlock` and `/api/mcp` exist (local `next build` lists them). The live 404s below were deploy lag on that date, not missing code.
-
-Recorded against the running Render free Docker service. Chat/confirm were not exercised end-to-end here (would burn a sandbox invoice and needs the demo cookie). No secrets printed.
+Recorded **2026-10-28** against `paypilot-docker` on `main`. Chat/confirm not burned here. No secrets printed.
 
 | Check | Result | Notes |
 | --- | --- | --- |
-| `GET /api/health/live` | **200** `{"ok":true}` in 0.4s | Cold start was already warm |
-| `GET /api/health` | **200** `ok: true` in 2.1s | sandbox, Azure `gpt-5-mini`, webhook configured, PayPal ok |
-| `GET /` | **200** | Chat page |
-| `GET /dashboard` | **200** | 3.1s |
+| `GET /api/health/live` | **200** `{"ok":true}` | Keep-alive workflow uses repo secret `APP_URL` |
+| `GET /api/health` | **200** `ok: true` | sandbox, Azure LLM, webhook configured, PayPal ok |
+| `GET /` | **200** | Chat (middleware may redirect to `/unlock` without cookie) |
+| `GET /dashboard` | **200** | AG Grid + forecast |
 | `GET /invoices` | **200** | |
-| `GET /unlock` | **404** | Live image is **behind** `origin/main` (GitHub has `/unlock` and `/api/mcp`) |
-| `POST /api/mcp` | **404** | Same: MCP is on GitHub main, not this Render deploy |
-| DB `invoiceCount` | **5** | Old live image; this branch does not seed fake invoices |
-| PayPal sample | `MARKED_AS_PAID` | Sandbox merchant is reachable. Status reflects later spike record-payments, not a buyer checkout |
+| `GET /unlock` | **200** | Demo gate page |
+| `POST /api/unlock` (code `paypilot`) | **303** + `paypilot_demo` cookie | Redirects to public host (not `0.0.0.0`) |
+| `POST /api/mcp` | **401** | Bearer required (`MCP_BEARER_TOKEN`) — route exists |
+| DB | Prefer `storage: "turso"` | File storage on free Docker wipes on restart; `SEED_ON_BOOT=true` restages demo rows when empty |
+| Simulator | `ENABLE_SIMULATOR=true` | Activity webhook simulator visible for judges |
 
-## Gaps to fix on Render (ops, not code)
+## Ops checklist (Render)
 
-1. Redeploy `paypilot-docker` from current `main` so `/unlock`, `/api/mcp`, dashboard insights, and the sidebar ship.
-2. Point `DATABASE_URL` + `DATABASE_AUTH_TOKEN` at Turso. The app does not seed fake invoices.
-3. Set `DEMO_ACCESS_CODE` and `MCP_BEARER_TOKEN` in the Render dashboard.
-4. Confirm GitHub Action secrets `APP_URL`, `CRON_URL`, `CRON_SECRET`.
+1. Deploy `paypilot-docker` from `main` (auto-deploy on).
+2. Set `DATABASE_URL` + `DATABASE_AUTH_TOKEN` to a Turso `libsql://` database so the ledger survives restarts. Until then keep `SEED_ON_BOOT=true`.
+3. Keep `DEMO_ACCESS_CODE=paypilot` (judges unlock at `/unlock`).
+4. Keep `ENABLE_SIMULATOR=true` for the judging window (or unset to hide the Activity CTA).
+5. GitHub Actions secrets: `APP_URL=https://paypilot-docker.onrender.com`, plus `CRON_URL` / `CRON_SECRET` for overdue cron.
 
-## Local confirmation (this branch)
+## Warm the ledger
 
-`npm test` 126 passed. `npm run eval` golden 40/40. `npx next build` succeeded (`/unlock` and `/api/mcp` in the route list).
+```bash
+# After unlock cookie, or with CRON_SECRET bearer:
+curl -X POST https://paypilot-docker.onrender.com/api/demo/stage-ledger \
+  -H "Cookie: paypilot_demo=…"
+# or
+npm run demo:stage-ledger   # uses local/Turso DATABASE_URL
+```
+
+## Local confirmation
+
+`npm test` and `npm run eval` (golden 40/40). `npx next build` lists `/unlock`, `/api/mcp`, `/api/demo/stage-ledger`.

@@ -34,3 +34,7 @@ services:
         sync: false
       - key: MCP_BEARER_TOKEN
         sync: false
+      - key: ENABLE_SIMULATOR
+        value: "true"
+      - key: SEED_ON_BOOT
+        value: "true"
