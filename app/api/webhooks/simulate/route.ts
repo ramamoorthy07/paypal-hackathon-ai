@@ -27,7 +27,7 @@ export async function POST(req: Request): Promise<NextResponse> {
   }
 
   // Must satisfy demo access gate
-  if (!isDemoAccessGranted(req)) {
+  if (!(await isDemoAccessGranted(req))) {
     return NextResponse.json(
       { ok: false, error: "Demo access required to simulate webhooks. Please unlock first." },
       { status: 401 },

@@ -74,8 +74,8 @@ export async function POST(request: Request): Promise<NextResponse> {
   const targetPath = from && from.startsWith("/") && !from.startsWith("//") ? from : "/";
   const response = NextResponse.redirect(new URL(targetPath, request.url), 303);
 
-  // Generate cryptographic signed token
-  const signedToken = createSignedToken();
+  // Generate cryptographic signed token (Web Crypto — Edge-safe)
+  const signedToken = await createSignedToken();
   response.cookies.set(DEMO_ACCESS_COOKIE, signedToken, demoCookieOptions());
   return response;
 }

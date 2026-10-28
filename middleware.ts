@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { isDemoAccessGranted, isExemptPath } from "@/lib/access/demo-code";
 
-export function middleware(request: NextRequest): NextResponse {
+export async function middleware(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl;
 
   // Static files and Next internals are excluded by matcher, but check isExemptPath explicitly
@@ -9,7 +9,7 @@ export function middleware(request: NextRequest): NextResponse {
     return NextResponse.next();
   }
 
-  const access = isDemoAccessGranted(request);
+  const access = await isDemoAccessGranted(request);
   if (!access) {
     if (pathname.startsWith("/api/")) {
       return NextResponse.json(

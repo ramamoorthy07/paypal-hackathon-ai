@@ -55,35 +55,35 @@ describe("isDemoAccessGranted", () => {
     resetEnvCache();
   });
 
-  it("allows local requests when no demo code is configured", () => {
+  it("allows local requests when no demo code is configured", async () => {
     delete process.env.DEMO_ACCESS_CODE;
-    expect(isDemoAccessGranted(request("/api/chat"))).toBe(true);
+    expect(await isDemoAccessGranted(request("/api/chat"))).toBe(true);
   });
 
-    it("requires the httpOnly cookie when DEMO_ACCESS_CODE is set", () => {
+  it("requires the httpOnly cookie when DEMO_ACCESS_CODE is set", async () => {
     process.env.DEMO_ACCESS_CODE = "gate-secret";
-    expect(isDemoAccessGranted(request("/api/chat"))).toBe(false);
+    expect(await isDemoAccessGranted(request("/api/chat"))).toBe(false);
     expect(
-      isDemoAccessGranted(
+      await isDemoAccessGranted(
         request("/api/chat", { cookie: `${DEMO_ACCESS_COOKIE}=wrong` }),
       ),
     ).toBe(false);
     expect(
-      isDemoAccessGranted(
+      await isDemoAccessGranted(
         request("/api/chat", { cookie: `${DEMO_ACCESS_COOKIE}=gate-secret` }),
       ),
     ).toBe(true);
   });
 
-  it("validates cryptographically signed HMAC session tokens", () => {
+  it("validates cryptographically signed HMAC session tokens", async () => {
     process.env.DEMO_ACCESS_CODE = "gate-secret";
     process.env.DEMO_COOKIE_SECRET = "super-secret-key-123";
     const now = Date.parse("2026-10-10T12:00:00.000Z");
-    const token = createSignedToken({ now, secret: "super-secret-key-123" });
+    const token = await createSignedToken({ now, secret: "super-secret-key-123" });
 
     // Valid signed token
     expect(
-      isDemoAccessGranted(
+      await isDemoAccessGranted(
         request("/api/chat", { cookie: `${DEMO_ACCESS_COOKIE}=${token}` }),
         now,
       ),
@@ -92,7 +92,7 @@ describe("isDemoAccessGranted", () => {
     // Tampered signed token
     const tampered = token.slice(0, -4) + "abcd";
     expect(
-      isDemoAccessGranted(
+      await isDemoAccessGranted(
         request("/api/chat", { cookie: `${DEMO_ACCESS_COOKIE}=${tampered}` }),
         now,
       ),
@@ -101,7 +101,7 @@ describe("isDemoAccessGranted", () => {
     // Expired signed token (older than 7 days)
     const eightDaysLater = now + 8 * 24 * 60 * 60 * 1000;
     expect(
-      isDemoAccessGranted(
+      await isDemoAccessGranted(
         request("/api/chat", { cookie: `${DEMO_ACCESS_COOKIE}=${token}` }),
         eightDaysLater,
       ),

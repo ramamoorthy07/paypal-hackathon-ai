@@ -67,10 +67,10 @@ export function clientIp(request: Request): string {
   return "127.0.0.1";
 }
 
-export function sessionIdFromRequest(request: Request): string | undefined {
+export async function sessionIdFromRequest(request: Request): Promise<string | undefined> {
   const cookie = demoCookieFromRequest(request);
   if (!cookie) return undefined;
-  const verified = verifySignedToken(cookie);
+  const verified = await verifySignedToken(cookie);
   if (verified.valid && verified.sessionId) {
     return verified.sessionId;
   }
@@ -132,7 +132,7 @@ export async function recordLlmSteps(
   await bumpLimit(`daily:${day}:llm`, limits.dailyLlm, endOfDay, additionalSteps);
 
   // Increment session budget if signed token present
-  const sid = sessionIdFromRequest(request);
+  const sid = await sessionIdFromRequest(request);
   if (sid) {
     await bumpLimit(`sess:${sid}:${day}:llm`, limits.sessionDailyLlm, endOfDay, additionalSteps);
   }
@@ -143,7 +143,7 @@ export async function denyIfAbusive(
   kind: AbuseKind,
   now = Date.now(),
 ): Promise<NextResponse | null> {
-  if (kind.requireAccess !== false && !isDemoAccessGranted(request, now)) {
+  if (kind.requireAccess !== false && !(await isDemoAccessGranted(request, now))) {
     return NextResponse.json(
       { ok: false, error: "Demo access required. Open /unlock." },
       { status: 401 },
@@ -166,7 +166,7 @@ export async function denyIfAbusive(
 
   const day = utcDay(now);
   const endOfDay = new Date(`${day}T23:59:59.999Z`).getTime();
-  const sid = sessionIdFromRequest(request);
+  const sid = await sessionIdFromRequest(request);
 
   if (kind.llm) {
     // Check per-session cap first

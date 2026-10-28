@@ -1,5 +1,3 @@
-import { createHmac, randomBytes } from "node:crypto";
-
 export const DEMO_ACCESS_COOKIE = "paypilot_demo";
 export const DEMO_TOKEN_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
@@ -64,23 +62,52 @@ export function timingSafeEqualString(left: string, right: string): boolean {
   return diff === 0;
 }
 
-export function createSignedToken(options?: {
+function bytesToHex(bytes: ArrayBuffer | Uint8Array): string {
+  const view = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+  let out = "";
+  for (let i = 0; i < view.length; i += 1) {
+    out += view[i]!.toString(16).padStart(2, "0");
+  }
+  return out;
+}
+
+function randomSessionId(): string {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  return bytesToHex(bytes);
+}
+
+/** Edge-safe HMAC-SHA256 (Web Crypto) — middleware cannot use node:crypto. */
+async function hmacSha256Hex(secret: string, message: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const signature = await crypto.subtle.sign("HMAC", key, encoder.encode(message));
+  return bytesToHex(signature);
+}
+
+export async function createSignedToken(options?: {
   sessionId?: string;
   now?: number;
   secret?: string;
-}): string {
+}): Promise<string> {
   const now = options?.now ?? Date.now();
-  const sid = options?.sessionId ?? randomBytes(16).toString("hex");
+  const sid = options?.sessionId ?? randomSessionId();
   const secret = options?.secret ?? getCookieSecret();
   const payload = `${now}.${sid}`;
-  const sig = createHmac("sha256", secret).update(payload).digest("hex");
+  const sig = await hmacSha256Hex(secret, payload);
   return `${payload}.${sig}`;
 }
 
-export function verifySignedToken(
+export async function verifySignedToken(
   token: string,
   options?: { now?: number; secret?: string },
-): { valid: boolean; sessionId?: string } {
+): Promise<{ valid: boolean; sessionId?: string }> {
   const parts = token.split(".");
   if (parts.length !== 3) {
     return { valid: false };
@@ -95,7 +122,7 @@ export function verifySignedToken(
     return { valid: false };
   }
   const secret = options?.secret ?? getCookieSecret();
-  const expectedSig = createHmac("sha256", secret).update(`${timestamp}.${sessionId}`).digest("hex");
+  const expectedSig = await hmacSha256Hex(secret, `${timestamp}.${sessionId}`);
   if (!timingSafeEqualString(sig, expectedSig)) {
     return { valid: false };
   }
@@ -126,7 +153,7 @@ export function demoCookieFromRequest(request: Request): string | undefined {
   return undefined;
 }
 
-export function isDemoAccessGranted(request: Request, now = Date.now()): boolean {
+export async function isDemoAccessGranted(request: Request, now = Date.now()): Promise<boolean> {
   const expected = getDemoAccessCode();
   if (!expected) {
     return true;
@@ -135,12 +162,11 @@ export function isDemoAccessGranted(request: Request, now = Date.now()): boolean
   if (!provided) {
     return false;
   }
-  // Check signed token
-  const verified = verifySignedToken(provided, { now });
+  const verified = await verifySignedToken(provided, { now });
   if (verified.valid) {
     return true;
   }
-  // Fallback: check plaintext code (for backwards compatibility with unit tests)
+  // Fallback: plaintext code (unit tests / legacy cookies)
   return timingSafeEqualString(provided, expected);
 }
 
