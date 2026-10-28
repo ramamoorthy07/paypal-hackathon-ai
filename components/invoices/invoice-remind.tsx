@@ -1,5 +1,7 @@
 "use client";
 
+import type { LucideIcon } from "lucide-react";
+import { AlertTriangle, Check, Info, Mail, Scale, Sprout } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
@@ -71,7 +73,7 @@ export function InvoiceRemind({
             <p className="text-xs font-semibold tracking-wider text-zinc-500 uppercase">
               Automated Reminders
             </p>
-            <span className="rounded-full border border-zinc-700/60 bg-zinc-800/60 px-2 py-0.5 text-[10px] font-medium text-zinc-300">
+            <span className="rounded-full border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-[10px] font-medium text-zinc-700 dark:border-zinc-700/60 dark:bg-zinc-800/60 dark:text-zinc-300">
               {sentTodayCount}/2 UTC today
             </span>
           </div>
@@ -95,7 +97,7 @@ export function InvoiceRemind({
             ) : (
               <>
                 <span>Send PayPal Reminder</span>
-                <span>✉</span>
+                <Mail className="h-3.5 w-3.5" aria-hidden />
               </>
             )}
           </button>
@@ -108,25 +110,32 @@ export function InvoiceRemind({
           <div className="mt-2.5 flex flex-wrap gap-2">
             {(
               [
-                { id: "friendly", label: "Friendly Notice", icon: "🌱" },
-                { id: "firm", label: "Firm Reminder", icon: "⚖️" },
-                { id: "final", label: "Final Notice", icon: "⚠️" },
-              ] as const
-            ).map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => setSelectedTone(t.id)}
-                className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition ${
-                  selectedTone === t.id
-                    ? "bg-zinc-900 text-white shadow-sm dark:bg-zinc-100 dark:text-zinc-900"
-                    : "border border-zinc-300/70 bg-white text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
-                }`}
-              >
-                <span>{t.icon}</span>
-                <span>{t.label}</span>
-              </button>
-            ))}
+                { id: "friendly" as const, label: "Friendly Notice", icon: Sprout },
+                { id: "firm" as const, label: "Firm Reminder", icon: Scale },
+                { id: "final" as const, label: "Final Notice", icon: AlertTriangle },
+              ] satisfies Array<{
+                id: "friendly" | "firm" | "final";
+                label: string;
+                icon: LucideIcon;
+              }>
+            ).map((t) => {
+              const ToneIcon = t.icon;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setSelectedTone(t.id)}
+                  className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition ${
+                    selectedTone === t.id
+                      ? "bg-zinc-900 text-white shadow-sm dark:bg-zinc-100 dark:text-zinc-900"
+                      : "border border-zinc-300/70 bg-white text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                  }`}
+                >
+                  <ToneIcon className="h-3.5 w-3.5" aria-hidden />
+                  <span>{t.label}</span>
+                </button>
+              );
+            })}
           </div>
           <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
             {toneDescriptions[selectedTone]}
@@ -135,14 +144,16 @@ export function InvoiceRemind({
       ) : null}
 
       {disabledReason && !canRemind ? (
-        <div className="mt-4 rounded-xl border border-amber-500/20 bg-amber-500/10 p-3.5 text-xs text-amber-400">
-          ℹ️ {disabledReason}
+        <div className="mt-4 inline-flex w-full items-start gap-2 rounded-xl border border-amber-500/20 bg-amber-500/10 p-3.5 text-xs text-amber-900 dark:text-amber-300">
+          <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
+          <span>{disabledReason}</span>
         </div>
       ) : null}
 
       {message ? (
-        <div className="mt-4 rounded-xl border border-blue-500/20 bg-blue-500/10 p-3.5 text-xs text-blue-400">
-          ✓ {message}
+        <div className="mt-4 inline-flex w-full items-start gap-2 rounded-xl border border-blue-500/20 bg-blue-500/10 p-3.5 text-xs text-blue-800 dark:text-blue-300">
+          <Check className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
+          <span>{message}</span>
         </div>
       ) : null}
 

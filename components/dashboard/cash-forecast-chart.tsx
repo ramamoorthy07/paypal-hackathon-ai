@@ -11,7 +11,7 @@ export function CashForecastChart({ weeks }: { weeks: WeekForecast[] }) {
     <section className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950">
       <p className="text-xs font-medium tracking-wide text-zinc-500 uppercase">Cash forecast</p>
       <h2 className="text-base font-semibold text-zinc-950 dark:text-zinc-50">Next 6 UTC weeks</h2>
-      <p className="mt-1 text-xs text-zinc-500">Expected vs late-pay bands. Totals are computed in code.</p>
+      <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">Expected vs late-pay bands. Totals are computed in code.</p>
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {weeks.map((week) => {
           const expectedPct = Math.round((week.expectedCents / maxCents) * 100);
@@ -46,7 +46,7 @@ export function CashForecastChart({ weeks }: { weeks: WeekForecast[] }) {
           );
         })}
       </div>
-      <p className="mt-3 text-[11px] text-zinc-500">
+      <p className="mt-3 text-[11px] text-zinc-600 dark:text-zinc-400">
         Bars per week: low · expected · high. Amounts are USD.
       </p>
     </section>

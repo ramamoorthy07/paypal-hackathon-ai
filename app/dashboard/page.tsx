@@ -1,4 +1,12 @@
 import Link from "next/link";
+import {
+  AlertTriangle,
+  ArrowRight,
+  CircleDollarSign,
+  Clock3,
+  FilePenLine,
+  Plus,
+} from "lucide-react";
 import { CashForecastChart } from "@/components/dashboard/cash-forecast-chart";
 import { ClientRiskGrid } from "@/components/dashboard/client-risk-grid";
 import { EarningsGrid } from "@/components/dashboard/earnings-grid";
@@ -27,7 +35,7 @@ export default async function DashboardPage() {
             <h1 className="text-2xl font-bold tracking-tight text-zinc-950 dark:text-zinc-50">
               Financial Intelligence & Cash Flow
             </h1>
-            <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-500">
+            <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
               Live Ledger
             </span>
           </div>
@@ -41,7 +49,7 @@ export default async function DashboardPage() {
             href="/"
             className="inline-flex h-9 items-center gap-1.5 rounded-full bg-blue-600 px-3.5 text-xs font-semibold text-white shadow-sm transition hover:bg-blue-500 active:scale-95"
           >
-            <span>+</span>
+            <Plus className="h-3.5 w-3.5" aria-hidden />
             <span>Draft Invoice in Chat</span>
           </Link>
           <Link
@@ -49,7 +57,7 @@ export default async function DashboardPage() {
             className="inline-flex h-9 items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-3.5 text-xs font-medium text-zinc-700 shadow-sm transition hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
           >
             <span>Invoices Ledger</span>
-            <span>→</span>
+            <ArrowRight className="h-3.5 w-3.5" aria-hidden />
           </Link>
         </div>
       </div>
@@ -77,7 +85,7 @@ export default async function DashboardPage() {
           label="Paid this month"
           value={`$${centsToAmountString(snapshot.paidThisMonthCents)}`}
           hint={`${snapshot.paidThisMonthCount} invoice${snapshot.paidThisMonthCount === 1 ? "" : "s"} settled in ${snapshot.monthLabel}`}
-          icon="💰"
+          icon={<CircleDollarSign aria-hidden />}
           badge="Settled"
           variant="emerald"
         />
@@ -85,7 +93,7 @@ export default async function DashboardPage() {
           label="Outstanding"
           value={`$${centsToAmountString(snapshot.outstandingCents)}`}
           hint={`${snapshot.outstandingCount} sent or overdue across clients`}
-          icon="⏳"
+          icon={<Clock3 aria-hidden />}
           badge="In Flight"
           variant="blue"
         />
@@ -93,7 +101,7 @@ export default async function DashboardPage() {
           label="Overdue"
           value={`$${centsToAmountString(snapshot.overdueCents)}`}
           hint={`${snapshot.overdueCount} past invoice due date`}
-          icon="⚠️"
+          icon={<AlertTriangle aria-hidden />}
           badge={snapshot.overdueCount > 0 ? "Action Required" : "Zero Overdue"}
           variant={snapshot.overdueCount > 0 ? "rose" : "zinc"}
         />
@@ -101,7 +109,7 @@ export default async function DashboardPage() {
           label="Drafts (Unsent)"
           value={`$${centsToAmountString(snapshot.draftCents)}`}
           hint={`${snapshot.draftCount} draft proposal${snapshot.draftCount === 1 ? "" : "s"} awaiting dispatch`}
-          icon="📝"
+          icon={<FilePenLine aria-hidden />}
           badge="Local"
           variant="zinc"
         />

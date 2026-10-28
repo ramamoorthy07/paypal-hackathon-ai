@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ArrowLeft, ExternalLink } from "lucide-react";
 import { InvoiceQr } from "@/components/invoices/invoice-qr";
 import { InvoiceRemind } from "@/components/invoices/invoice-remind";
 import { InvoiceStatusSync } from "@/components/invoices/invoice-status-sync";
@@ -51,7 +52,7 @@ export default async function InvoiceDetailPage({
             href="/invoices"
             className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 text-xs font-medium text-zinc-700 shadow-sm transition hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
           >
-            <span>←</span>
+            <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
             <span>Back to Invoices</span>
           </Link>
           <div className="flex items-center gap-2">
@@ -72,7 +73,7 @@ export default async function InvoiceDetailPage({
               className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-blue-600 px-3.5 text-xs font-medium text-white shadow-sm transition hover:bg-blue-500"
             >
               <span>Pay on PayPal</span>
-              <span className="text-[10px]">↗</span>
+              <ExternalLink className="h-3 w-3" aria-hidden />
             </a>
           ) : null}
         </div>
@@ -242,7 +243,7 @@ export default async function InvoiceDetailPage({
               <h3 className="text-xs font-semibold tracking-wider text-zinc-500 uppercase">
                 PayPal Sandbox Rail
               </h3>
-              <span className="flex items-center gap-1.5 text-[11px] font-medium text-emerald-500">
+              <span className="flex items-center gap-1.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-400">
                 <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                 Live
               </span>

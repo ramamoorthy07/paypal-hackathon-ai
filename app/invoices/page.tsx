@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CreditCard, Plus } from "lucide-react";
 import { InvoiceOpenRefresh } from "@/components/invoices/invoice-open-refresh";
 import { InvoicesTable } from "@/components/invoices/invoices-table";
 import { KpiCard } from "@/components/ui/kpi-card";
@@ -88,7 +89,7 @@ export default async function InvoicesPage({
             href="/"
             className="inline-flex h-9 items-center gap-1.5 rounded-full bg-blue-600 px-3.5 text-xs font-semibold text-white shadow-xs transition hover:bg-blue-500 active:scale-95"
           >
-            <span>+</span>
+            <Plus className="h-3.5 w-3.5" aria-hidden />
             <span>Draft Invoice in Chat</span>
           </Link>
           <PaypalReconcileButton />
@@ -101,7 +102,7 @@ export default async function InvoicesPage({
           label="Total Invoiced"
           value={`$${centsToAmountString(totalBilledCents)}`}
           hint={`${nonCancelled.length} active invoices across all clients`}
-          icon="💳"
+          icon={<CreditCard aria-hidden />}
           variant="zinc"
         />
         <KpiCard

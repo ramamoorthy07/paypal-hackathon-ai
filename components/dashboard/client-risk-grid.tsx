@@ -8,6 +8,7 @@ import {
   type ColDef,
   type ICellRendererParams,
 } from "ag-grid-community";
+import { Sparkles, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ClientBehavior } from "@/lib/insights/behavior";
 import { centsToAmountString } from "@/lib/core/money";
@@ -58,13 +59,13 @@ function WhyCell(params: ICellRendererParams<ClientBehavior>) {
         title="Open full AI risk breakdown"
       >
         <span>{isPending ? "Analyzing…" : "Why?"}</span>
-        <span className="text-amber-400">✦</span>
+        <Sparkles className="h-3 w-3 text-amber-600 dark:text-amber-400" aria-hidden />
       </button>
       {cachedText ? (
         <button
           type="button"
           onClick={() => context.openWhyModal(client)}
-          className="truncate text-[11px] text-zinc-400 underline decoration-zinc-600 underline-offset-2 transition hover:text-zinc-200"
+          className="truncate text-[11px] text-zinc-600 underline decoration-zinc-400 underline-offset-2 transition hover:text-zinc-900 dark:text-zinc-400 dark:decoration-zinc-600 dark:hover:text-zinc-200"
           title="Click to read complete explanation"
         >
           {cachedText}
@@ -197,11 +198,11 @@ export function ClientRiskGrid({ rows }: { rows: ClientBehavior[] }) {
   const bandColor = (band: string) => {
     switch (band) {
       case "high":
-        return "bg-rose-500/20 text-rose-300 border-rose-500/30";
+        return "bg-rose-500/20 text-rose-700 border-rose-500/30 dark:text-rose-300";
       case "medium":
-        return "bg-amber-500/20 text-amber-300 border-amber-500/30";
+        return "bg-amber-500/20 text-amber-800 border-amber-500/30 dark:text-amber-300";
       default:
-        return "bg-emerald-500/20 text-emerald-300 border-emerald-500/30";
+        return "bg-emerald-500/20 text-emerald-700 border-emerald-500/30 dark:text-emerald-300";
     }
   };
 
@@ -267,7 +268,7 @@ export function ClientRiskGrid({ rows }: { rows: ClientBehavior[] }) {
                   className="rounded-lg p-1 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
                   aria-label="Close"
                 >
-                  ✕
+                  <X className="h-4 w-4" aria-hidden />
                 </button>
               </div>
             </div>
@@ -299,17 +300,17 @@ export function ClientRiskGrid({ rows }: { rows: ClientBehavior[] }) {
 
             {/* AI Explanation Box */}
             <div className="rounded-xl border border-zinc-800 bg-zinc-900/80 p-4">
-              <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-amber-400">
-                <span>✦</span>
+              <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-amber-700 dark:text-amber-400">
+                <Sparkles className="h-3.5 w-3.5" aria-hidden />
                 <span>AI Risk Assessment (Azure OpenAI)</span>
               </div>
               {activeModal.loading ? (
-                <div className="flex items-center gap-2 py-3 text-xs text-zinc-400">
-                  <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-zinc-400 border-t-transparent" />
+                <div className="flex items-center gap-2 py-3 text-xs text-zinc-600 dark:text-zinc-400">
+                  <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-zinc-500 border-t-transparent dark:border-zinc-400" />
                   <span>Analyzing payment timestamps and calculating behavioral risk...</span>
                 </div>
               ) : activeModal.error ? (
-                <p className="text-xs text-rose-400">{activeModal.error}</p>
+                <p className="text-xs text-rose-700 dark:text-rose-400">{activeModal.error}</p>
               ) : (
                 <p className="text-sm leading-relaxed text-zinc-200">
                   {activeModal.explanation}

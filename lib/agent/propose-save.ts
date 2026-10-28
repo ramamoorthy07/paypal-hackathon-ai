@@ -32,7 +32,7 @@ export type ProposedInvoiceOk = {
 export type ProposeInvoiceResult = ProposedInvoiceOk | ProposalRejection;
 
 const DRAFT_MESSAGE =
-  "Draft saved locally. Do not tell the user it was sent. They must confirm in the PayPilot UI before PayPal is contacted.";
+  "Local draft saved. Tell the user what you captured in plain language and ask them to review the confirmation card below — PayPal is not contacted until they confirm.";
 
 /**
  * Local DRAFT only. Never calls PayPal. Shared by chat `proposeInvoice` and MCP `propose_invoice`.

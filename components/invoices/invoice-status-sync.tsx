@@ -1,5 +1,6 @@
 "use client";
 
+import { Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import type { DisplayStatus } from "@/lib/invoices/state";
@@ -56,7 +57,7 @@ export function InvoiceStatusSync({
         setMessage(body.error ?? "Simulation failed.");
         return;
       }
-      setMessage("✓ Webhook verified: Invoice marked as PAID.");
+      setMessage("Webhook verified: Invoice marked as PAID.");
       router.refresh();
     } catch {
       setMessage("Could not dispatch simulated webhook.");
@@ -104,7 +105,8 @@ export function InvoiceStatusSync({
           className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-purple-500/30 bg-purple-500/10 px-3.5 text-xs font-semibold text-purple-600 shadow-xs transition hover:bg-purple-500/20 active:scale-95 disabled:opacity-60 dark:text-purple-300"
           title="Simulate incoming PayPal INVOICING.INVOICE.PAID webhook"
         >
-          <span>Simulate Paid (Webhook ⚡)</span>
+          <Zap className="h-3.5 w-3.5" aria-hidden />
+          <span>Simulate Paid Webhook</span>
         </button>
       ) : null}
 

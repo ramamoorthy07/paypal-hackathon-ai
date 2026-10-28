@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ArrowRight, Search, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { StatusBadge } from "@/components/ui/status-badge";
 import type { InvoiceView } from "@/lib/invoices/views";
@@ -39,7 +40,10 @@ export function InvoicesTable({ invoices }: { invoices: InvoiceView[] }) {
       {/* Search and Page Size Filter Bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 px-1">
         <div className="relative flex items-center">
-          <span className="pointer-events-none absolute left-3 text-xs text-zinc-400">🔍</span>
+          <Search
+            className="pointer-events-none absolute left-2.5 h-3.5 w-3.5 text-zinc-400"
+            aria-hidden
+          />
           <input
             type="text"
             value={search}
@@ -57,9 +61,10 @@ export function InvoicesTable({ invoices }: { invoices: InvoiceView[] }) {
                 setSearch("");
                 setPage(1);
               }}
-              className="absolute right-2.5 text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+              className="absolute right-2.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+              aria-label="Clear search"
             >
-              ✕
+              <X className="h-3.5 w-3.5" aria-hidden />
             </button>
           ) : null}
         </div>
@@ -291,7 +296,7 @@ function InvoiceTableRow({ invoice }: { invoice: InvoiceView }) {
             className="inline-flex h-8 items-center gap-1 rounded-lg bg-zinc-900 px-3 text-xs font-medium text-white transition hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white"
           >
             <span>Details</span>
-            <span>→</span>
+            <ArrowRight className="h-3 w-3" aria-hidden />
           </Link>
         </div>
       </td>

@@ -11,6 +11,7 @@ import {
   type CellClickedEvent,
   type RowClickedEvent,
 } from "ag-grid-community";
+import { Download, Search, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { EarningsRow } from "@/lib/invoices/earnings";
@@ -66,18 +67,18 @@ function StatusCell(params: ICellRendererParams<EarningsRow>) {
   if (!status) return null;
 
   const styles: Record<string, string> = {
-    PAID: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
-    SENT: "bg-blue-500/15 text-blue-400 border-blue-500/30",
-    OVERDUE: "bg-rose-500/15 text-rose-400 border-rose-500/30",
-    DRAFT: "bg-zinc-500/15 text-zinc-400 border-zinc-500/30",
-    CANCELLED: "bg-zinc-600/15 text-zinc-400 border-zinc-600/30",
+    PAID: "bg-emerald-500/15 text-emerald-700 border-emerald-500/30 dark:text-emerald-400",
+    SENT: "bg-blue-500/15 text-blue-700 border-blue-500/30 dark:text-blue-400",
+    OVERDUE: "bg-rose-500/15 text-rose-700 border-rose-500/30 dark:text-rose-400",
+    DRAFT: "bg-zinc-500/15 text-zinc-700 border-zinc-500/30 dark:text-zinc-300",
+    CANCELLED: "bg-zinc-600/15 text-zinc-600 border-zinc-600/30 dark:text-zinc-400",
   };
 
   const dots: Record<string, string> = {
-    PAID: "bg-emerald-400",
-    SENT: "bg-blue-400",
-    OVERDUE: "bg-rose-400 animate-pulse",
-    DRAFT: "bg-zinc-400",
+    PAID: "bg-emerald-600 dark:bg-emerald-400",
+    SENT: "bg-blue-600 dark:bg-blue-400",
+    OVERDUE: "bg-rose-600 animate-pulse dark:bg-rose-400",
+    DRAFT: "bg-zinc-500 dark:bg-zinc-400",
     CANCELLED: "bg-zinc-500",
   };
 
@@ -85,7 +86,7 @@ function StatusCell(params: ICellRendererParams<EarningsRow>) {
     <div className="flex h-full items-center">
       <span
         className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${
-          styles[status] ?? "border-zinc-700 bg-zinc-800 text-zinc-300"
+          styles[status] ?? "border-zinc-300 bg-zinc-100 text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
         }`}
       >
         <span className={`h-1.5 w-1.5 rounded-full ${dots[status] ?? "bg-zinc-400"}`} />
@@ -100,16 +101,16 @@ function RiskCell(params: ICellRendererParams<EarningsRow>) {
   if (!band) return null;
 
   const styles: Record<string, string> = {
-    low: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
-    medium: "text-amber-400 bg-amber-500/10 border-amber-500/20",
-    high: "text-rose-400 bg-rose-500/10 border-rose-500/20",
+    low: "text-emerald-700 bg-emerald-500/10 border-emerald-500/20 dark:text-emerald-400",
+    medium: "text-amber-800 bg-amber-500/10 border-amber-500/20 dark:text-amber-400",
+    high: "text-rose-700 bg-rose-500/10 border-rose-500/20 dark:text-rose-400",
   };
 
   return (
     <div className="flex h-full items-center">
       <span
         className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-medium capitalize ${
-          styles[band] ?? "border-zinc-700 bg-zinc-800 text-zinc-400"
+          styles[band] ?? "border-zinc-300 bg-zinc-100 text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400"
         }`}
       >
         {band}
@@ -248,9 +249,10 @@ export function EarningsGrid({ rows, nowMs }: { rows: EarningsRow[]; nowMs: numb
         <div className="flex flex-wrap items-center gap-2.5">
           {/* Quick Search */}
           <div className="relative">
-            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-xs text-zinc-400">
-              🔍
-            </span>
+            <Search
+              className="pointer-events-none absolute inset-y-0 left-2.5 my-auto h-3.5 w-3.5 text-zinc-400"
+              aria-hidden
+            />
             <input
               type="text"
               value={searchText}
@@ -262,9 +264,10 @@ export function EarningsGrid({ rows, nowMs }: { rows: EarningsRow[]; nowMs: numb
               <button
                 type="button"
                 onClick={() => handleSearch("")}
-                className="absolute inset-y-0 right-2 flex items-center text-xs text-zinc-400 hover:text-zinc-200"
+                className="absolute inset-y-0 right-2 flex items-center text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
+                aria-label="Clear search"
               >
-                ✕
+                <X className="h-3.5 w-3.5" aria-hidden />
               </button>
             ) : null}
           </div>
@@ -276,7 +279,7 @@ export function EarningsGrid({ rows, nowMs }: { rows: EarningsRow[]; nowMs: numb
             title="Export all rows to CSV"
             className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 text-xs font-medium text-zinc-700 shadow-sm transition hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
           >
-            <span>📥</span>
+            <Download className="h-3.5 w-3.5" aria-hidden />
             <span>Export CSV</span>
           </button>
 

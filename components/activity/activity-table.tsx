@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Search, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { AuditLogRow } from "@/lib/db/schema";
 import { isoDateFromMs } from "@/lib/core/money";
@@ -29,15 +30,15 @@ function formatAction(action: string): string {
 function actorBadge(actor: string) {
   switch (actor) {
     case "agent":
-      return "bg-purple-500/10 text-purple-400 border-purple-500/20";
+      return "bg-purple-500/10 text-purple-700 border-purple-500/20 dark:text-purple-400";
     case "user":
-      return "bg-blue-500/10 text-blue-400 border-blue-500/20";
+      return "bg-blue-500/10 text-blue-700 border-blue-500/20 dark:text-blue-400";
     case "webhook":
-      return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+      return "bg-emerald-500/10 text-emerald-700 border-emerald-500/20 dark:text-emerald-400";
     case "simulator":
-      return "bg-amber-500/10 text-amber-500 border-amber-500/30";
+      return "bg-amber-500/10 text-amber-800 border-amber-500/30 dark:text-amber-400";
     default:
-      return "bg-zinc-800 text-zinc-400 border-zinc-700";
+      return "bg-zinc-100 text-zinc-700 border-zinc-300 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700";
   }
 }
 
@@ -83,7 +84,10 @@ export function ActivityTable({ logs }: { logs: AuditLogRow[] }) {
       {/* Search and Rows per page */}
       <div className="flex flex-wrap items-center justify-between gap-3 px-1">
         <div className="relative flex items-center">
-          <span className="pointer-events-none absolute left-3 text-xs text-zinc-400">🔍</span>
+          <Search
+            className="pointer-events-none absolute left-2.5 h-3.5 w-3.5 text-zinc-400"
+            aria-hidden
+          />
           <input
             type="text"
             value={search}
@@ -101,9 +105,10 @@ export function ActivityTable({ logs }: { logs: AuditLogRow[] }) {
                 setSearch("");
                 setPage(1);
               }}
-              className="absolute right-2.5 text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+              className="absolute right-2.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+              aria-label="Clear search"
             >
-              ✕
+              <X className="h-3.5 w-3.5" aria-hidden />
             </button>
           ) : null}
         </div>

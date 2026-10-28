@@ -2,13 +2,32 @@
 
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
+import type { LucideIcon } from "lucide-react";
+import {
+  ArrowRight,
+  ArrowUp,
+  BarChart3,
+  Check,
+  Clock3,
+  Globe2,
+  Shield,
+  Sparkles,
+  Trash2,
+  Zap,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { AssistantText } from "@/components/chat/assistant-text";
 import { ConfirmationCard } from "@/components/chat/confirmation-card";
+import {
+  CashForecastCard,
+  ClientRiskCard,
+  OverdueCard,
+} from "@/components/chat/insight-cards";
 
 const STORAGE_KEY = "paypilot_chat_session_v1";
 
 type PromptTemplate = {
-  icon: string;
+  icon: LucideIcon;
   category: string;
   badge: string;
   prompt: string;
@@ -17,32 +36,32 @@ type PromptTemplate = {
 
 const PROMPT_TEMPLATES: PromptTemplate[] = [
   {
-    icon: "⚡",
+    icon: Zap,
     category: "Standard Draft",
     badge: "HITL Safe",
     prompt: "Invoice Acme Studio $120 for a logo refresh. Email buyer@personal.example.com. USD.",
-    description: "Extracts client, email, item, and amounts into a local draft card.",
+    description: "Turn a messy note into a reviewable local draft — PayPal stays untouched until you confirm.",
   },
   {
-    icon: "🌍",
+    icon: Globe2,
     category: "Live FX Conversion",
     badge: "Frankfurter Live",
     prompt: "Client agreed ₹40,000 for mobile app bug fixes, email buyer@personal.example.com.",
-    description: "Converts INR to USD with live ECB rates; requires explicit user approval.",
+    description: "Shows the live INR→USD rate and asks you to approve before drafting.",
   },
   {
-    icon: "⏰",
+    icon: Clock3,
     category: "Overdue Accounts",
     badge: "Auto Date Math",
     prompt: "Invoice Beta Labs $90 for code audit. Email beta@example.com. Due date was 5 days ago. USD.",
-    description: "Relative date parsing, sets past due date and unlocks reminder options.",
+    description: "Understands “5 days ago”, marks the draft overdue, and unlocks reminders.",
   },
   {
-    icon: "📊",
+    icon: BarChart3,
     category: "Cash Flow Inquiry",
     badge: "Deterministic",
     prompt: "What is my cash forecast for the next 6 weeks?",
-    description: "Calculates weekly expected inflows from real ledger slip-days.",
+    description: "Explains expected cash week by week from your real ledger — no invented totals.",
   },
 ];
 
@@ -131,7 +150,7 @@ export function ChatApp() {
               className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-xs font-medium text-zinc-600 shadow-xs transition hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
               title="Clear conversation history and start a fresh session"
             >
-              <span>🗑️</span>
+              <Trash2 className="h-3.5 w-3.5" aria-hidden />
               <span>New Chat</span>
             </button>
           ) : null}
@@ -148,22 +167,24 @@ export function ChatApp() {
               <div className="space-y-6">
                 {/* Hero Banner */}
                 <div className="text-center">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs font-medium text-blue-400">
-                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-400" />
-                    <span>Human-in-the-Loop Active • PayPal Sandbox Rail</span>
+                  <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs font-medium text-blue-700 dark:text-blue-400">
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-600 dark:bg-blue-400" />
+                    <span>You confirm before PayPal • Sandbox</span>
                   </div>
                   <h1 className="mt-3 text-2xl font-bold tracking-tight text-zinc-900 sm:text-3xl dark:text-zinc-50">
-                    Freelancer Payment Operator
+                    What should we invoice today?
                   </h1>
-                  <p className="mx-auto mt-2 max-w-md text-sm text-zinc-600 dark:text-zinc-400">
-                    Turn conversational agreements into verified PayPal invoices. AI proposes local
-                    drafts; real payments only dispatch when you confirm.
+                  <p className="mx-auto mt-2 max-w-md text-sm text-zinc-700 dark:text-zinc-400">
+                    Paste a client note or pick a starter below. I draft a local invoice for you to
+                    review — PayPal only runs after you confirm.
                   </p>
                 </div>
 
                 {/* Template Cards */}
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  {PROMPT_TEMPLATES.map((item) => (
+                  {PROMPT_TEMPLATES.map((item) => {
+                    const Icon = item.icon;
+                    return (
                     <button
                       key={item.category}
                       type="button"
@@ -172,24 +193,27 @@ export function ChatApp() {
                     >
                       <div>
                         <div className="flex items-center justify-between">
-                          <span className="text-lg">{item.icon}</span>
-                          <span className="rounded-full border border-zinc-700/60 bg-zinc-800/60 px-2 py-0.5 text-[10px] font-medium text-zinc-400">
+                          <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
+                            <Icon className="h-4 w-4" aria-hidden />
+                          </span>
+                          <span className="rounded-full border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-[10px] font-medium text-zinc-700 dark:border-zinc-700/60 dark:bg-zinc-800/60 dark:text-zinc-300">
                             {item.badge}
                           </span>
                         </div>
                         <h3 className="mt-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                           {item.category}
                         </h3>
-                        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                        <p className="mt-1 text-xs leading-relaxed text-zinc-700 dark:text-zinc-400">
                           {item.description}
                         </p>
                       </div>
                       <div className="mt-3 flex items-center gap-1 text-[11px] font-medium text-blue-600 group-hover:underline dark:text-blue-400">
                         <span>Try sample prompt</span>
-                        <span>→</span>
+                        <ArrowRight className="h-3 w-3" aria-hidden />
                       </div>
                     </button>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             ) : (
@@ -198,7 +222,7 @@ export function ChatApp() {
                   key={message.id}
                   className={`flex flex-col gap-2 rounded-2xl p-4 transition ${
                     message.role === "user"
-                      ? "border border-zinc-700/40 bg-zinc-900/40 dark:border-zinc-800/60"
+                      ? "border border-zinc-200 bg-zinc-100/80 dark:border-zinc-800/60 dark:bg-zinc-900/40"
                       : "border border-transparent bg-transparent"
                   }`}
                 >
@@ -206,16 +230,26 @@ export function ChatApp() {
                     <span
                       className={`inline-flex h-5 items-center rounded-full px-2 text-[10px] font-semibold tracking-wider uppercase ${
                         message.role === "user"
-                          ? "border border-zinc-700/80 bg-zinc-800 text-zinc-300"
-                          : "border border-blue-500/30 bg-blue-600/20 text-blue-400"
+                          ? "border border-zinc-300 bg-white text-zinc-700 dark:border-zinc-700/80 dark:bg-zinc-800 dark:text-zinc-300"
+                          : "border border-blue-500/30 bg-blue-600/10 text-blue-700 dark:bg-blue-600/20 dark:text-blue-400"
                       }`}
                     >
-                      {message.role === "user" ? "You" : "✦ PayPilot AI"}
+                      {message.role === "user" ? (
+                        "You"
+                      ) : (
+                        <span className="inline-flex items-center gap-1">
+                          <Sparkles className="h-3 w-3" aria-hidden />
+                          PayPilot AI
+                        </span>
+                      )}
                     </span>
                   </div>
                   {message.parts.map((part, index) => {
                     if (part.type === "text") {
-                      return (
+                      if (!part.text.trim()) return null;
+                      return message.role === "assistant" ? (
+                        <AssistantText key={`${message.id}-text-${index}`} text={part.text} />
+                      ) : (
                         <p
                           key={`${message.id}-text-${index}`}
                           className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-800 dark:text-zinc-200"
@@ -233,6 +267,33 @@ export function ChatApp() {
                         />
                       );
                     }
+                    if (part.type === "tool-getCashForecast") {
+                      return (
+                        <CashForecastCard
+                          key={part.toolCallId}
+                          output={"output" in part ? part.output : undefined}
+                          state={part.state}
+                        />
+                      );
+                    }
+                    if (part.type === "tool-getClientRisk") {
+                      return (
+                        <ClientRiskCard
+                          key={part.toolCallId}
+                          output={"output" in part ? part.output : undefined}
+                          state={part.state}
+                        />
+                      );
+                    }
+                    if (part.type === "tool-listOverdue") {
+                      return (
+                        <OverdueCard
+                          key={part.toolCallId}
+                          output={"output" in part ? part.output : undefined}
+                          state={part.state}
+                        />
+                      );
+                    }
                     return null;
                   })}
                 </article>
@@ -240,20 +301,20 @@ export function ChatApp() {
             )}
 
             {error ? (
-              <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400">
-                {error.message}
+              <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-300">
+                Something went wrong: {error.message}
               </div>
             ) : null}
 
             {busy ? (
-              <div className="flex items-center gap-3 text-xs text-zinc-400">
-                <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-zinc-400 border-t-transparent" />
+              <div className="flex items-center gap-3 text-xs text-zinc-600 dark:text-zinc-400">
+                <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-zinc-500 border-t-transparent dark:border-zinc-400" />
                 <span>
-                  {status === "submitted" ? "Consulting financial policies…" : "Writing response…"}
+                  {status === "submitted" ? "Reading your request…" : "Preparing a clear reply…"}
                 </span>
                 <button
                   type="button"
-                  className="underline hover:text-zinc-200"
+                  className="underline hover:text-zinc-900 dark:hover:text-zinc-200"
                   onClick={() => stop()}
                 >
                   Stop
@@ -268,14 +329,14 @@ export function ChatApp() {
           <div className="mx-auto w-full max-w-3xl lg:max-w-4xl space-y-2.5">
             {/* Quick-Action Chips */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
-              <span className="text-[11px] font-medium text-zinc-500">Quick tests:</span>
+              <span className="text-[11px] font-medium text-zinc-500">Try:</span>
               <button
                 type="button"
                 disabled={busy}
                 onClick={() => submit(PROMPT_TEMPLATES[0].prompt)}
                 className="inline-flex shrink-0 items-center gap-1 rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[11px] font-medium text-zinc-700 transition hover:bg-zinc-100 disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
               >
-                <span>⚡</span>
+                <Zap className="h-3 w-3" aria-hidden />
                 <span>USD Invoice</span>
               </button>
               <button
@@ -284,7 +345,7 @@ export function ChatApp() {
                 onClick={() => submit(PROMPT_TEMPLATES[1].prompt)}
                 className="inline-flex shrink-0 items-center gap-1 rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[11px] font-medium text-zinc-700 transition hover:bg-zinc-100 disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
               >
-                <span>🌍</span>
+                <Globe2 className="h-3 w-3" aria-hidden />
                 <span>INR Quote</span>
               </button>
               <button
@@ -293,7 +354,7 @@ export function ChatApp() {
                 onClick={() => submit(PROMPT_TEMPLATES[2].prompt)}
                 className="inline-flex shrink-0 items-center gap-1 rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[11px] font-medium text-zinc-700 transition hover:bg-zinc-100 disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
               >
-                <span>⏰</span>
+                <Clock3 className="h-3 w-3" aria-hidden />
                 <span>Overdue Notice</span>
               </button>
               <button
@@ -302,7 +363,7 @@ export function ChatApp() {
                 onClick={() => submit(PROMPT_TEMPLATES[3].prompt)}
                 className="inline-flex shrink-0 items-center gap-1 rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[11px] font-medium text-zinc-700 transition hover:bg-zinc-100 disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
               >
-                <span>📊</span>
+                <BarChart3 className="h-3 w-3" aria-hidden />
                 <span>Cash Forecast</span>
               </button>
             </div>
@@ -328,7 +389,7 @@ export function ChatApp() {
                 className="inline-flex h-12 items-center gap-2 rounded-xl bg-[#003087] px-5 text-sm font-semibold text-white shadow-md shadow-blue-900/30 transition hover:bg-[#00256c] active:scale-95 disabled:opacity-50"
               >
                 <span>Send</span>
-                <span>↑</span>
+                <ArrowUp className="h-4 w-4" aria-hidden />
               </button>
             </form>
           </div>
@@ -350,7 +411,7 @@ export function ChatApp() {
             <div className="mt-4 space-y-3 text-xs">
               <div className="flex items-center justify-between border-b border-zinc-100 pb-2 dark:border-zinc-800/80">
                 <span className="text-zinc-500">PayPal Rail</span>
-                <span className="font-semibold text-emerald-400">Sandbox REST v2 Active</span>
+                <span className="font-semibold text-emerald-700 dark:text-emerald-400">Sandbox REST v2 Active</span>
               </div>
               <div className="flex items-center justify-between border-b border-zinc-100 pb-2 dark:border-zinc-800/80">
                 <span className="text-zinc-500">AI Engine</span>
@@ -370,7 +431,7 @@ export function ChatApp() {
           {/* HITL Rule Card */}
           <div className="rounded-2xl border border-blue-500/20 bg-gradient-to-br from-blue-500/10 to-transparent p-5 shadow-sm">
             <div className="flex items-center gap-2 text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase">
-              <span>🛡️</span>
+              <Shield className="h-3.5 w-3.5" aria-hidden />
               <span>Human-in-the-Loop Policy</span>
             </div>
             <p className="mt-2 text-xs leading-relaxed text-zinc-700 dark:text-zinc-300">
@@ -405,19 +466,19 @@ export function ChatApp() {
             </p>
             <ul className="mt-3 space-y-2 text-xs text-zinc-600 dark:text-zinc-400">
               <li className="flex items-center gap-2">
-                <span className="text-emerald-500 dark:text-emerald-400">✓</span>
+                <Check className="h-3.5 w-3.5 shrink-0 text-emerald-500 dark:text-emerald-400" aria-hidden />
                 <span>Max invoice amount capped at $5,000</span>
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-emerald-500 dark:text-emerald-400">✓</span>
+                <Check className="h-3.5 w-3.5 shrink-0 text-emerald-500 dark:text-emerald-400" aria-hidden />
                 <span>Max 2 PayPal reminders / invoice / UTC day</span>
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-emerald-500 dark:text-emerald-400">✓</span>
+                <Check className="h-3.5 w-3.5 shrink-0 text-emerald-500 dark:text-emerald-400" aria-hidden />
                 <span>Live Frankfurter FX requires explicit confirmation</span>
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-emerald-500 dark:text-emerald-400">✓</span>
+                <Check className="h-3.5 w-3.5 shrink-0 text-emerald-500 dark:text-emerald-400" aria-hidden />
                 <span>XSS & HTML tags sanitized before storage</span>
               </li>
             </ul>

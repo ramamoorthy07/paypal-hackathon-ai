@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowRight, Check, CheckCheck, ExternalLink } from "lucide-react";
 import { useEffect, useState } from "react";
 import { centsToAmountString, isoDateFromMs } from "@/lib/core/money";
 
@@ -77,7 +78,7 @@ export function ConfirmationCard({
   if (state !== "output-available") {
     return (
       <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
-        Drafting a local invoice…
+        Preparing a local draft for your review…
       </div>
     );
   }
@@ -193,7 +194,7 @@ function ConfirmDraftCard({ proposal }: { proposal: DraftProposal }) {
       <header className="flex items-center justify-between border-b border-zinc-100 bg-zinc-50 px-5 py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
         <div>
           <p className="text-[11px] font-semibold tracking-wider text-zinc-500 uppercase">
-            {sent ? "Sent via PayPal Sandbox" : "Confirm before PayPal"}
+            {sent ? "Share link ready" : "Ready for your review"}
           </p>
           <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-50">
             Invoice for {proposal.clientName}
@@ -202,11 +203,11 @@ function ConfirmDraftCard({ proposal }: { proposal: DraftProposal }) {
         <span
           className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold tracking-wider uppercase ${
             sent
-              ? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
-              : "border border-zinc-700 bg-zinc-800 text-zinc-200"
+              ? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+              : "border border-zinc-300 bg-zinc-100 text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200"
           }`}
         >
-          {sent ? "SENT" : "LOCAL DRAFT"}
+          {sent ? "Sent" : "Draft"}
         </span>
       </header>
 
@@ -240,7 +241,7 @@ function ConfirmDraftCard({ proposal }: { proposal: DraftProposal }) {
         </div>
 
         {inr ? (
-          <p className="rounded-xl border border-amber-500/20 bg-amber-500/10 px-3.5 py-2.5 text-xs text-amber-200">
+          <p className="rounded-xl border border-amber-500/20 bg-amber-500/10 px-3.5 py-2.5 text-xs text-amber-900 dark:text-amber-200">
             Converted from ₹{inr.amount} at {fx?.usdPerInrLabel ?? inr.rate} USD per 1 INR
             {fx?.source === "live"
               ? ` (live Frankfurter${fx.asOfDate ? `, as of ${fx.asOfDate}` : ""}; fetched ${new Date(fx.fetchedAt).toISOString()})`
@@ -257,26 +258,34 @@ function ConfirmDraftCard({ proposal }: { proposal: DraftProposal }) {
 
         {sent ? (
           <div className="space-y-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-400">
-              <span>✓</span>
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+              <Check className="h-3.5 w-3.5" aria-hidden />
               <span>Invoice Dispatched to PayPal Sandbox</span>
             </div>
             
-            <div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-zinc-950/40 p-2.5">
-              <span className="flex-1 truncate font-mono text-xs text-emerald-300">
+            <div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-white/80 p-2.5 dark:bg-zinc-950/40">
+              <span className="flex-1 truncate font-mono text-xs text-emerald-800 dark:text-emerald-300">
                 {sent.hostedUrl}
               </span>
               <button
                 type="button"
                 onClick={handleCopyLink}
-                className="shrink-0 rounded-md bg-emerald-500/20 px-2.5 py-1 text-xs font-medium text-emerald-200 transition hover:bg-emerald-500/30"
+                className="inline-flex shrink-0 items-center gap-1 rounded-md bg-emerald-500/20 px-2.5 py-1 text-xs font-medium text-emerald-800 transition hover:bg-emerald-500/30 dark:text-emerald-200"
               >
-                {copied ? "Copied! ✓" : "Copy Link"}
+                {copied ? (
+                  <>
+                    <CheckCheck className="h-3 w-3" aria-hidden />
+                    Copied
+                  </>
+                ) : (
+                  "Copy Link"
+                )}
               </button>
             </div>
 
-            <p className="text-[11px] text-zinc-400">
-              PayPal ID: <span className="font-mono text-zinc-300">{sent.paypalInvoiceId}</span>
+            <p className="text-[11px] text-zinc-600 dark:text-zinc-400">
+              PayPal ID:{" "}
+              <span className="font-mono text-zinc-800 dark:text-zinc-300">{sent.paypalInvoiceId}</span>
               {sent.alreadySent ? " · (reused existing draft)" : ""}
             </p>
 
@@ -288,29 +297,30 @@ function ConfirmDraftCard({ proposal }: { proposal: DraftProposal }) {
                 className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-500"
               >
                 <span>Open PayPal Checkout</span>
-                <span>↗</span>
+                <ExternalLink className="h-3 w-3" aria-hidden />
               </a>
               <a
                 href={`/invoices/${sent.invoiceId}`}
                 className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-800 px-3.5 py-1.5 text-xs font-medium text-zinc-200 transition hover:bg-zinc-700"
               >
                 <span>View Invoice & QR</span>
-                <span>→</span>
+                <ArrowRight className="h-3 w-3" aria-hidden />
               </a>
             </div>
           </div>
         ) : (
           <>
-            <p className="text-xs text-zinc-500">
-              Confirm creates a PayPal sandbox invoice and a share link. PayPal is not contacted until then.
+            <p className="text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
+              Looks good? Confirm to create a PayPal sandbox invoice and get a share link. Nothing is
+              sent until you do.
             </p>
-            <label className="flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-300">
+            <label className="flex items-center gap-2 text-xs text-zinc-700 dark:text-zinc-300">
               <input
                 type="checkbox"
                 checked={emailRecipient}
                 onChange={(event) => setEmailRecipient(event.target.checked)}
               />
-              Also email the invoice via PayPal
+              Also email the client through PayPal
             </label>
             {error ? <p className="text-sm text-red-600 dark:text-red-400">{error}</p> : null}
             <div className="flex gap-2">
@@ -320,7 +330,7 @@ function ConfirmDraftCard({ proposal }: { proposal: DraftProposal }) {
                 onClick={() => void onConfirm()}
                 className="inline-flex h-10 items-center rounded-full bg-[#003087] px-4 text-sm font-medium text-white disabled:opacity-60"
               >
-                {pending ? "Sending…" : "Confirm and send share link"}
+                {pending ? "Creating share link…" : "Confirm & get share link"}
               </button>
               <button
                 type="button"
@@ -328,7 +338,7 @@ function ConfirmDraftCard({ proposal }: { proposal: DraftProposal }) {
                 onClick={() => setDismissed(true)}
                 className="inline-flex h-10 items-center rounded-full border border-zinc-200 px-4 text-sm font-medium text-zinc-700 dark:border-zinc-700 dark:text-zinc-200"
               >
-                Not now
+                Keep as draft
               </button>
             </div>
           </>

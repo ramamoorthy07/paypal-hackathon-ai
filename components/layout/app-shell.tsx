@@ -2,14 +2,21 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { LucideIcon } from "lucide-react";
+import {
+  FileText,
+  History,
+  LayoutDashboard,
+  MessageSquare,
+} from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 
-const NAV = [
-  { href: "/", label: "Chat", icon: "💬" },
-  { href: "/invoices", label: "Invoices", icon: "📋" },
-  { href: "/dashboard", label: "Dashboard", icon: "📊" },
-  { href: "/activity", label: "Activity", icon: "📜" },
-] as const;
+const NAV: { href: string; label: string; icon: LucideIcon }[] = [
+  { href: "/", label: "Chat", icon: MessageSquare },
+  { href: "/invoices", label: "Invoices", icon: FileText },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/activity", label: "Activity", icon: History },
+];
 
 function isActive(pathname: string, href: string): boolean {
   if (href === "/") {
@@ -25,6 +32,7 @@ function NavLinks({ compact }: { compact?: boolean }) {
     <>
       {NAV.map((item) => {
         const active = isActive(pathname, item.href);
+        const Icon = item.icon;
         return (
           <Link
             key={item.href}
@@ -41,7 +49,7 @@ function NavLinks({ compact }: { compact?: boolean }) {
                   }`
             }
           >
-            <span className="text-sm">{item.icon}</span>
+            <Icon className={compact ? "h-3.5 w-3.5 shrink-0" : "h-4 w-4 shrink-0"} aria-hidden />
             <span>{item.label}</span>
           </Link>
         );
@@ -64,7 +72,7 @@ export function AppSidebar() {
           </span>
           <span>PayPilot</span>
         </Link>
-        <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-500">
+        <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:text-emerald-400">
           Sandbox
         </span>
       </div>
@@ -119,8 +127,8 @@ export function AppTopBar() {
           {title}
         </span>
         <span className="hidden text-zinc-400 sm:inline">/</span>
-        <span className="hidden items-center gap-1.5 rounded-full border border-blue-500/20 bg-blue-500/10 px-2.5 py-0.5 text-[10px] font-medium text-blue-500 sm:inline-flex">
-          <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+        <span className="hidden items-center gap-1.5 rounded-full border border-blue-500/20 bg-blue-500/10 px-2.5 py-0.5 text-[10px] font-medium text-blue-700 sm:inline-flex dark:text-blue-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-blue-600 dark:bg-blue-400" />
           <span>HITL Protected</span>
         </span>
       </div>
@@ -148,5 +156,3 @@ export function AppMobileNav() {
     </div>
   );
 }
-
-

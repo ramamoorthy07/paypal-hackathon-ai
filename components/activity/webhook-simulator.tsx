@@ -1,5 +1,6 @@
 "use client";
 
+import { Check, X, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { centsToAmountString } from "@/lib/core/money";
@@ -79,7 +80,7 @@ export function WebhookSimulator({
             : "REFUNDED";
 
       setMessage({
-        text: `✓ PayPal Webhook received: ${eventType} applied to ${
+        text: `PayPal Webhook received: ${eventType} applied to ${
           selectedInvoice?.clientName ?? selectedInvoiceId
         }. Status updated to ${statusName}.`,
         type: "success",
@@ -179,7 +180,7 @@ export function WebhookSimulator({
             ) : (
               <>
                 <span>Dispatch Webhook</span>
-                <span>⚡</span>
+                <Zap className="h-3.5 w-3.5" aria-hidden />
               </>
             )}
           </button>
@@ -195,7 +196,8 @@ export function WebhookSimulator({
           onClick={() => void triggerSimulation("INVOICING.INVOICE.PAID")}
           className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-medium text-emerald-600 transition hover:bg-emerald-500/20 dark:text-emerald-400"
         >
-          <span>✓ Mark Paid (Customer Checkout)</span>
+          <Check className="h-3 w-3" aria-hidden />
+          <span>Mark Paid (Customer Checkout)</span>
         </button>
         <button
           type="button"
@@ -203,7 +205,8 @@ export function WebhookSimulator({
           onClick={() => void triggerSimulation("INVOICING.INVOICE.CANCELLED")}
           className="inline-flex items-center gap-1 rounded-full border border-rose-500/30 bg-rose-500/10 px-2.5 py-0.5 text-[11px] font-medium text-rose-600 transition hover:bg-rose-500/20 dark:text-rose-400"
         >
-          <span>✕ Mark Cancelled</span>
+          <X className="h-3 w-3" aria-hidden />
+          <span>Mark Cancelled</span>
         </button>
       </div>
 
@@ -231,7 +234,7 @@ export function WebhookSimulator({
               ID: {String(lastPayload.id)}
             </span>
           </div>
-          <pre className="mt-2 max-h-48 overflow-auto font-mono text-[11px] leading-relaxed text-emerald-400">
+          <pre className="mt-2 max-h-48 overflow-auto font-mono text-[11px] leading-relaxed text-emerald-800 dark:text-emerald-400">
             {JSON.stringify(lastPayload, null, 2)}
           </pre>
         </div>

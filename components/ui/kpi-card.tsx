@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 export function KpiCard({
   label,
   value,
@@ -9,7 +11,7 @@ export function KpiCard({
   label: string;
   value: string;
   hint: string;
-  icon?: string;
+  icon?: ReactNode;
   badge?: string;
   variant?: "emerald" | "blue" | "rose" | "zinc";
 }) {
@@ -21,10 +23,11 @@ export function KpiCard({
   };
 
   const badgeStyles = {
-    emerald: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-    blue: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-    rose: "bg-rose-500/10 text-rose-400 border-rose-500/20",
-    zinc: "bg-zinc-100 text-zinc-600 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700",
+    emerald:
+      "bg-emerald-500/10 text-emerald-700 border-emerald-500/20 dark:text-emerald-400",
+    blue: "bg-blue-500/10 text-blue-700 border-blue-500/20 dark:text-blue-400",
+    rose: "bg-rose-500/10 text-rose-700 border-rose-500/20 dark:text-rose-400",
+    zinc: "bg-zinc-100 text-zinc-700 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700",
   };
 
   return (
@@ -33,7 +36,11 @@ export function KpiCard({
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
-          {icon ? <span className="text-base">{icon}</span> : null}
+          {icon ? (
+            <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center text-zinc-500 [&_svg]:h-4 [&_svg]:w-4">
+              {icon}
+            </span>
+          ) : null}
           <p className="text-xs font-semibold tracking-wider text-zinc-500 uppercase">{label}</p>
         </div>
         {badge ? (

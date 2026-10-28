@@ -28,7 +28,8 @@
     "ag-grid-react": "^36.2.0",
     "ai": "^7.0.131",
     "drizzle-orm": "^0.45.3",
-    "next": "16.4.0",
+    "lucide-react": "^1.63.0",
+    "next": "16.4.3",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "tsx": "^4.23.15",
@@ -41,7 +42,7 @@
     "@types/react-dom": "^19",
     "drizzle-kit": "^0.31.11",
     "eslint": "^9",
-    "eslint-config-next": "16.4.0",
+    "eslint-config-next": "16.4.3",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^3.2.4"

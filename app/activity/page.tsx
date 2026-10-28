@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowRight, Bot, ScrollText, UserRound, Zap } from "lucide-react";
 import { ActivityTable } from "@/components/activity/activity-table";
 import { KpiCard } from "@/components/ui/kpi-card";
 import { WebhookSimulator } from "@/components/activity/webhook-simulator";
@@ -45,7 +46,7 @@ export default async function ActivityHistoryPage({
             <h1 className="text-2xl font-bold tracking-tight text-zinc-950 dark:text-zinc-50">
               Audit & Activity History
             </h1>
-            <span className="rounded-full border border-purple-500/20 bg-purple-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-purple-400">
+            <span className="rounded-full border border-purple-500/20 bg-purple-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-purple-700 dark:text-purple-400">
               Immutable Trail
             </span>
           </div>
@@ -60,7 +61,7 @@ export default async function ActivityHistoryPage({
             className="inline-flex h-9 items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-3.5 text-xs font-medium text-zinc-700 shadow-xs transition hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
           >
             <span>Invoices Ledger</span>
-            <span>→</span>
+            <ArrowRight className="h-3.5 w-3.5" aria-hidden />
           </Link>
         </div>
       </div>
@@ -70,28 +71,28 @@ export default async function ActivityHistoryPage({
           label="Total Recorded Events"
           value={String(logs.length)}
           hint="Stored in persistent libSQL audit table"
-          icon="📜"
+          icon={<ScrollText aria-hidden />}
           variant="zinc"
         />
         <KpiCard
           label="AI Agent Actions"
           value={String(agentCount)}
           hint="Autonomous draft proposals & insights"
-          icon="✦"
+          icon={<Bot aria-hidden />}
           variant="zinc"
         />
         <KpiCard
           label="User Confirmations"
           value={String(userCount)}
           hint="Human-in-the-Loop approvals & reminders"
-          icon="👤"
+          icon={<UserRound aria-hidden />}
           variant="blue"
         />
         <KpiCard
           label="Webhook / Sync Events"
           value={String(webhookCount)}
           hint="Real-time PayPal sandbox events"
-          icon="⚡"
+          icon={<Zap aria-hidden />}
           variant="emerald"
         />
       </div>
