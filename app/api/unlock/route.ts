@@ -35,7 +35,7 @@ function resetUnlockFailures(ip: string): void {
 }
 
 export async function POST(request: Request): Promise<NextResponse> {
-  const denied = denyIfAbusive(request, { requireAccess: false });
+  const denied = await denyIfAbusive(request, { requireAccess: false });
   if (denied) {
     return denied;
   }

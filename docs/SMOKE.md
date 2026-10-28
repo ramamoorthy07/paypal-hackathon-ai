@@ -2,7 +2,9 @@
 
 Target: `https://paypilot-docker.onrender.com`
 
-Recorded **2026-10-08** against the running Render free Docker service. Chat/confirm were not exercised end-to-end here (would burn a sandbox invoice and needs the demo cookie). No secrets printed.
+> Historical snapshot from **2026-10-08**. On the current branch, `/unlock` and `/api/mcp` exist (local `next build` lists them). The live 404s below were deploy lag on that date, not missing code.
+
+Recorded against the running Render free Docker service. Chat/confirm were not exercised end-to-end here (would burn a sandbox invoice and needs the demo cookie). No secrets printed.
 
 | Check | Result | Notes |
 | --- | --- | --- |

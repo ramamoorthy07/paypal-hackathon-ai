@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { InvoiceOpenRefresh } from "@/components/invoice-open-refresh";
 import { InvoicesTable } from "@/components/invoices-table";
+import { KpiCard } from "@/components/kpi-card";
 import { PaypalReconcileButton } from "@/components/paypal-reconcile-button";
 import { listInvoiceViews } from "@/lib/invoices/views";
 import { centsToAmountString } from "@/lib/money";
@@ -95,91 +96,39 @@ export default async function InvoicesPage({
         </div>
       </div>
 
-      {/* Top 4 Financial Metric Summary Cards */}
       <div className="grid gap-3.5 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-xs transition hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold tracking-wider text-zinc-500 uppercase">
-              Total Invoiced
-            </span>
-            <span className="text-base">💳</span>
-          </div>
-          <p className="mt-2 text-2xl font-bold tracking-tight tabular-nums text-zinc-950 dark:text-zinc-50">
-            ${centsToAmountString(totalBilledCents)}
-          </p>
-          <p className="mt-1 text-xs text-zinc-500">
-            {nonCancelled.length} active invoices across all clients
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-emerald-500/20 bg-white p-4 shadow-xs transition hover:shadow-md dark:bg-zinc-950">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold tracking-wider text-zinc-500 uppercase">
-              Collected (Settled)
-            </span>
-            <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-400">
-              {totalBilledCents > 0
-                ? `${Math.round((paidCents / totalBilledCents) * 100)}% settled`
-                : "0%"}
-            </span>
-          </div>
-          <p className="mt-2 text-2xl font-bold tracking-tight tabular-nums text-emerald-600 dark:text-emerald-400">
-            ${centsToAmountString(paidCents)}
-          </p>
-          <p className="mt-1 text-xs text-zinc-500">
-            {paidRows.length} invoice{paidRows.length === 1 ? "" : "s"} fully paid via PayPal
-          </p>
-        </div>
-
-        <div
-          className={`rounded-2xl border bg-white p-4 shadow-xs transition hover:shadow-md dark:bg-zinc-950 ${
-            overdueRows.length > 0 ? "border-rose-500/30" : "border-blue-500/20"
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold tracking-wider text-zinc-500 uppercase">
-              Outstanding Receivables
-            </span>
-            {overdueRows.length > 0 ? (
-              <span className="rounded-full border border-rose-500/20 bg-rose-500/10 px-2 py-0.5 text-[10px] font-medium text-rose-400">
-                {overdueRows.length} overdue
-              </span>
-            ) : (
-              <span className="rounded-full border border-blue-500/20 bg-blue-500/10 px-2 py-0.5 text-[10px] font-medium text-blue-400">
-                On track
-              </span>
-            )}
-          </div>
-          <p
-            className={`mt-2 text-2xl font-bold tracking-tight tabular-nums ${
-              overdueRows.length > 0
-                ? "text-rose-600 dark:text-rose-400"
-                : "text-zinc-950 dark:text-zinc-50"
-            }`}
-          >
-            ${centsToAmountString(outstandingCents)}
-          </p>
-          <p className="mt-1 text-xs text-zinc-500">
-            ${centsToAmountString(overdueCents)} past due date · {sentRows.length} pending
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-xs transition hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold tracking-wider text-zinc-500 uppercase">
-              Drafts (Unsent)
-            </span>
-            <span className="rounded-full border border-zinc-700 bg-zinc-800 px-2 py-0.5 text-[10px] font-medium text-zinc-400">
-              Local
-            </span>
-          </div>
-          <p className="mt-2 text-2xl font-bold tracking-tight tabular-nums text-zinc-950 dark:text-zinc-50">
-            ${centsToAmountString(draftCents)}
-          </p>
-          <p className="mt-1 text-xs text-zinc-500">
-            {draftRows.length} draft{draftRows.length === 1 ? "" : "s"} awaiting confirmation
-          </p>
-        </div>
+        <KpiCard
+          label="Total Invoiced"
+          value={`$${centsToAmountString(totalBilledCents)}`}
+          hint={`${nonCancelled.length} active invoices across all clients`}
+          icon="💳"
+          variant="zinc"
+        />
+        <KpiCard
+          label="Collected (Settled)"
+          value={`$${centsToAmountString(paidCents)}`}
+          hint={`${paidRows.length} invoice${paidRows.length === 1 ? "" : "s"} fully paid via PayPal`}
+          badge={
+            totalBilledCents > 0
+              ? `${Math.round((paidCents / totalBilledCents) * 100)}% settled`
+              : "0%"
+          }
+          variant="emerald"
+        />
+        <KpiCard
+          label="Outstanding Receivables"
+          value={`$${centsToAmountString(outstandingCents)}`}
+          hint={`$${centsToAmountString(overdueCents)} past due date · ${sentRows.length} pending`}
+          badge={overdueRows.length > 0 ? `${overdueRows.length} overdue` : "On track"}
+          variant={overdueRows.length > 0 ? "rose" : "blue"}
+        />
+        <KpiCard
+          label="Drafts (Unsent)"
+          value={`$${centsToAmountString(draftCents)}`}
+          hint={`${draftRows.length} draft${draftRows.length === 1 ? "" : "s"} awaiting confirmation`}
+          badge="Local"
+          variant="zinc"
+        />
       </div>
 
       {/* Filter Tabs & Stats Bar */}

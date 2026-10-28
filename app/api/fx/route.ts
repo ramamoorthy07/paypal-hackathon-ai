@@ -12,7 +12,7 @@ export async function GET(request: Request): Promise<NextResponse> {
     return NextResponse.json({ ok: false, error: "Environment is invalid." }, { status: 503 });
   }
 
-  const denied = denyIfAbusive(request, { requireAccess: false });
+  const denied = await denyIfAbusive(request, { requireAccess: false });
   if (denied) {
     return denied;
   }

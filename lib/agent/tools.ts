@@ -16,6 +16,3 @@ export const agentTools = {
   getClientRisk,
   listOverdue,
 };
-
-export const AGENT_WRITE_TOOL_NAMES = ["proposeInvoice"] as const;
-export const AGENT_READ_TOOL_NAMES = ["getCashForecast", "getClientRisk", "listOverdue"] as const;

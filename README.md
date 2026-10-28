@@ -25,13 +25,13 @@ chat → proposeInvoice (local DRAFT) → Confirm → PayPal share link
 ## Layout
 
 ```text
-app/           Next.js App Router (pages + API)
-components/    UI
-lib/           domain (agent, paypal, invoices, insights, db, access)
-scripts/       eval + spikes (no demo seed)
-tests/         unit tests — PayPal HTTP is stubbed so tests never send invoices
-docs/          evals, smoke, MCP, toolkit, spike
-postman/       collection (use a real draft id after chat)
+app/            pages + API routes
+components/     UI
+lib/            agent | paypal | invoices | insights | db | access | llm | mcp
+scripts/        eval + spike (hackathon evidence; no demo seed)
+tests/          unit tests — PayPal HTTP is stubbed so tests never send invoices
+docs/           EVALS, MCP, TOOLKIT, SPIKE, SMOKE, screenshots
+postman/        sponsor collection (use a real draft id after chat)
 ```
 
 ## Sponsors used
@@ -109,7 +109,7 @@ Repo secrets (GitHub → Settings → Secrets and variables → Actions):
 | `CRON_SECRET` | same bearer token as the Render `CRON_SECRET` env var |
 | `APP_URL` | `https://paypilot-docker.onrender.com` (keep-alive ping) |
 
-The route is not demo-gated. In production it returns 401 unless `Authorization: Bearer $CRON_SECRET` matches. `/api/cron/reminders` is an alias.
+The route is not demo-gated. In production it returns 401 unless `Authorization: Bearer $CRON_SECRET` matches.
 
 ## Postman
 
@@ -136,7 +136,7 @@ Shooting script: [DEMO.md](DEMO.md).
 - `POST /api/invoices/[id]/sync` — fallback GET when webhooks cannot reach localhost
 - `POST /api/summary/monthly` — AI briefing from local totals (no PayPal call)
 - `POST /api/invoices/[id]/remind` — AI note + PayPal remind (overdue, max 2/UTC day)
-- `GET|POST /api/cron/overdue` — overdue PayPal remind sweep (alias `/api/cron/reminders`); `CRON_SECRET` in production; GitHub Actions twice daily UTC
+- `GET|POST /api/cron/overdue` — overdue PayPal remind sweep; `CRON_SECRET` in production; GitHub Actions twice daily UTC
 
 ## Security
 

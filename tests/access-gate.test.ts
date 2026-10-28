@@ -36,7 +36,6 @@ describe("demo access paths", () => {
     expect(isDemoProtectedPath("/api/health")).toBe(false);
     expect(isDemoProtectedPath("/api/health/live")).toBe(false);
     expect(isDemoProtectedPath("/api/webhooks/paypal")).toBe(false);
-    expect(isDemoProtectedPath("/api/cron/reminders")).toBe(false);
     expect(isDemoProtectedPath("/api/cron/overdue")).toBe(false);
     expect(isDemoProtectedPath("/api/mcp")).toBe(false);
   });
@@ -134,40 +133,49 @@ describe("denyIfAbusive", () => {
   });
 
   it("returns 401 without the demo cookie", async () => {
-    const denied = denyIfAbusive(request("/api/chat"), { llm: true });
+    const denied = await denyIfAbusive(request("/api/chat"), { llm: true });
     expect(denied?.status).toBe(401);
     await expect(denied?.json()).resolves.toMatchObject({ ok: false });
   });
 
-  it("rate-limits per IP after the configured number of allowed calls", () => {
+  it("rate-limits per IP after the configured number of allowed calls", async () => {
     const now = Date.parse("2026-10-08T12:00:00.000Z");
     const kind = { requireAccess: false };
-    expect(denyIfAbusive(request("/api/unlock", { ip: "10.0.0.1" }), kind, now)).toBeNull();
-    expect(denyIfAbusive(request("/api/unlock", { ip: "10.0.0.1" }), kind, now)).toBeNull();
-    expect(denyIfAbusive(request("/api/unlock", { ip: "10.0.0.1" }), kind, now)).toBeNull();
-    expect(denyIfAbusive(request("/api/unlock", { ip: "10.0.0.1" }), kind, now)?.status).toBe(429);
-    expect(denyIfAbusive(request("/api/unlock", { ip: "10.0.0.2" }), kind, now)).toBeNull();
+    expect(await denyIfAbusive(request("/api/unlock", { ip: "10.0.0.1" }), kind, now)).toBeNull();
+    expect(await denyIfAbusive(request("/api/unlock", { ip: "10.0.0.1" }), kind, now)).toBeNull();
+    expect(await denyIfAbusive(request("/api/unlock", { ip: "10.0.0.1" }), kind, now)).toBeNull();
+    expect((await denyIfAbusive(request("/api/unlock", { ip: "10.0.0.1" }), kind, now))?.status).toBe(429);
+    expect(await denyIfAbusive(request("/api/unlock", { ip: "10.0.0.2" }), kind, now)).toBeNull();
   });
 
-  it("enforces a daily LLM budget", () => {
+  it("enforces a daily LLM budget", async () => {
     const cookie = `${DEMO_ACCESS_COOKIE}=gate-secret`;
     const now = Date.parse("2026-10-08T12:00:00.000Z");
-    expect(denyIfAbusive(request("/api/chat", { cookie, ip: "10.0.0.3" }), { llm: true }, now)).toBeNull();
-    expect(denyIfAbusive(request("/api/chat", { cookie, ip: "10.0.0.4" }), { llm: true }, now)).toBeNull();
-    expect(denyIfAbusive(request("/api/chat", { cookie, ip: "10.0.0.5" }), { llm: true }, now)?.status).toBe(
-      429,
-    );
+    expect(await denyIfAbusive(request("/api/chat", { cookie, ip: "10.0.0.3" }), { llm: true }, now)).toBeNull();
+    expect(await denyIfAbusive(request("/api/chat", { cookie, ip: "10.0.0.4" }), { llm: true }, now)).toBeNull();
+    expect(
+      (await denyIfAbusive(request("/api/chat", { cookie, ip: "10.0.0.5" }), { llm: true }, now))?.status,
+    ).toBe(429);
   });
 
-  it("enforces a daily PayPal write budget", () => {
+  it("enforces a daily PayPal write budget", async () => {
     const cookie = `${DEMO_ACCESS_COOKIE}=gate-secret`;
     const now = Date.parse("2026-10-08T12:00:00.000Z");
     expect(
-      denyIfAbusive(request("/api/invoices/confirm", { cookie, ip: "10.0.0.9" }), { paypalWrite: true }, now),
+      await denyIfAbusive(
+        request("/api/invoices/confirm", { cookie, ip: "10.0.0.9" }),
+        { paypalWrite: true },
+        now,
+      ),
     ).toBeNull();
     expect(
-      denyIfAbusive(request("/api/invoices/confirm", { cookie, ip: "10.0.0.8" }), { paypalWrite: true }, now)
-        ?.status,
+      (
+        await denyIfAbusive(
+          request("/api/invoices/confirm", { cookie, ip: "10.0.0.8" }),
+          { paypalWrite: true },
+          now,
+        )
+      )?.status,
     ).toBe(429);
   });
 });

@@ -59,31 +59,3 @@ export function paypalReadOnlyAgentTools(): Record<string, unknown> {
     return {};
   }
 }
-
-export function paypalToolkitToolNames(allEnabled: boolean): string[] {
-  try {
-    const env = getEnv();
-    const toolkit = new PayPalAgentToolkit({
-      clientId: env.PAYPAL_CLIENT_ID,
-      clientSecret: env.PAYPAL_CLIENT_SECRET,
-      configuration: allEnabled
-        ? {
-            actions: {
-              invoices: {
-                create: true,
-                list: true,
-                send: true,
-                sendReminder: true,
-                cancel: true,
-                search: true,
-              },
-            },
-            context: { sandbox: env.PAYPAL_MODE !== "live" },
-          }
-        : paypalReadOnlyToolkitConfig(env.PAYPAL_MODE !== "live"),
-    });
-    return Object.keys(toolkit.getTools()).sort();
-  } catch {
-    return [];
-  }
-}

@@ -16,7 +16,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     );
   }
 
-  const denied = denyIfAbusive(request, { requireAccess: false, llm: true });
+  const denied = await denyIfAbusive(request, { requireAccess: false, llm: true });
   if (denied) {
     return denied;
   }

@@ -95,8 +95,15 @@ export const auditLog = sqliteTable(
   (table) => [index("audit_log_invoice_id_idx").on(table.invoiceId)],
 );
 
+export const rateLimits = sqliteTable("rate_limits", {
+  key: text("key").primaryKey(),
+  count: integer("count").notNull(),
+  expiresAt: integer("expires_at").notNull(),
+});
+
 export type ClientRow = typeof clients.$inferSelect;
 export type InvoiceRow = typeof invoices.$inferSelect;
 export type WebhookEventRow = typeof webhookEvents.$inferSelect;
 export type ReminderRow = typeof reminders.$inferSelect;
 export type AuditLogRow = typeof auditLog.$inferSelect;
+export type RateLimitRow = typeof rateLimits.$inferSelect;

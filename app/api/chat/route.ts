@@ -31,7 +31,7 @@ export async function POST(req: Request): Promise<Response> {
     );
   }
 
-  const denied = denyIfAbusive(req, { llm: true });
+  const denied = await denyIfAbusive(req, { llm: true });
   if (denied) {
     return denied;
   }

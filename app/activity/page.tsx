@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ActivityTable } from "@/components/activity-table";
+import { KpiCard } from "@/components/kpi-card";
 import { WebhookSimulator } from "@/components/webhook-simulator";
 import { listRecentAuditLogs } from "@/lib/db/repositories/audit-log";
 import { listInvoiceViews } from "@/lib/invoices/views";
@@ -64,51 +65,35 @@ export default async function ActivityHistoryPage({
         </div>
       </div>
 
-      {/* Top Metric Cards */}
       <div className="grid gap-3.5 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-xs dark:border-zinc-800 dark:bg-zinc-950">
-          <div className="flex items-center justify-between text-xs text-zinc-500">
-            <span className="font-semibold uppercase tracking-wider">Total Recorded Events</span>
-            <span>📜</span>
-          </div>
-          <p className="mt-2 text-2xl font-bold tracking-tight tabular-nums text-zinc-950 dark:text-zinc-50">
-            {logs.length}
-          </p>
-          <p className="mt-1 text-xs text-zinc-500">Stored in persistent libSQL audit table</p>
-        </div>
-
-        <div className="rounded-2xl border border-purple-500/20 bg-white p-4 shadow-xs dark:bg-zinc-950">
-          <div className="flex items-center justify-between text-xs text-purple-400">
-            <span className="font-semibold uppercase tracking-wider">AI Agent Actions</span>
-            <span>✦</span>
-          </div>
-          <p className="mt-2 text-2xl font-bold tracking-tight tabular-nums text-purple-500">
-            {agentCount}
-          </p>
-          <p className="mt-1 text-xs text-zinc-500">Autonomous draft proposals & insights</p>
-        </div>
-
-        <div className="rounded-2xl border border-blue-500/20 bg-white p-4 shadow-xs dark:bg-zinc-950">
-          <div className="flex items-center justify-between text-xs text-blue-400">
-            <span className="font-semibold uppercase tracking-wider">User Confirmations</span>
-            <span>👤</span>
-          </div>
-          <p className="mt-2 text-2xl font-bold tracking-tight tabular-nums text-blue-500">
-            {userCount}
-          </p>
-          <p className="mt-1 text-xs text-zinc-500">Human-in-the-Loop approvals & reminders</p>
-        </div>
-
-        <div className="rounded-2xl border border-emerald-500/20 bg-white p-4 shadow-xs dark:bg-zinc-950">
-          <div className="flex items-center justify-between text-xs text-emerald-400">
-            <span className="font-semibold uppercase tracking-wider">Webhook / Sync Events</span>
-            <span>⚡</span>
-          </div>
-          <p className="mt-2 text-2xl font-bold tracking-tight tabular-nums text-emerald-500">
-            {webhookCount}
-          </p>
-          <p className="mt-1 text-xs text-zinc-500">Real-time PayPal sandbox events</p>
-        </div>
+        <KpiCard
+          label="Total Recorded Events"
+          value={String(logs.length)}
+          hint="Stored in persistent libSQL audit table"
+          icon="📜"
+          variant="zinc"
+        />
+        <KpiCard
+          label="AI Agent Actions"
+          value={String(agentCount)}
+          hint="Autonomous draft proposals & insights"
+          icon="✦"
+          variant="zinc"
+        />
+        <KpiCard
+          label="User Confirmations"
+          value={String(userCount)}
+          hint="Human-in-the-Loop approvals & reminders"
+          icon="👤"
+          variant="blue"
+        />
+        <KpiCard
+          label="Webhook / Sync Events"
+          value={String(webhookCount)}
+          hint="Real-time PayPal sandbox events"
+          icon="⚡"
+          variant="emerald"
+        />
       </div>
 
       {/* Interactive Webhook Simulator for Judges & Testing */}

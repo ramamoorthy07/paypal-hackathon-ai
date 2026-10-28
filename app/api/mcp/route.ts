@@ -15,7 +15,7 @@ async function handle(request: Request): Promise<Response> {
       { status: 401, headers: { "WWW-Authenticate": "Bearer" } },
     );
   }
-  const denied = denyIfAbusive(request, { requireAccess: false });
+  const denied = await denyIfAbusive(request, { requireAccess: false });
   if (denied) {
     return denied;
   }

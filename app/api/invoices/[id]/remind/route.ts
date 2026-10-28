@@ -17,7 +17,7 @@ export async function POST(
     return NextResponse.json({ ok: false, error: "Environment is invalid." }, { status: 503 });
   }
 
-  const denied = denyIfAbusive(req, { llm: true, paypalWrite: true });
+  const denied = await denyIfAbusive(req, { llm: true, paypalWrite: true });
   if (denied) {
     return denied;
   }

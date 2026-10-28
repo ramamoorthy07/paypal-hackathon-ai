@@ -130,7 +130,7 @@
               }
             ],
             "url": "{{baseUrl}}/api/cron/overdue",
-            "description": "GitHub Actions posts here with Authorization: Bearer CRON_SECRET. Locally, omit Authorization when CRON_SECRET is unset. /api/cron/reminders is an alias."
+            "description": "GitHub Actions posts here with Authorization: Bearer CRON_SECRET. Locally, omit Authorization when CRON_SECRET is unset."
           }
         }
       ]

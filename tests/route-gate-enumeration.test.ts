@@ -9,7 +9,6 @@ describe("route gate enumeration audit (A1)", () => {
     "/api/health",
     "/api/health/live",
     "/api/webhooks/paypal",
-    "/api/cron/reminders",
     "/api/cron/overdue",
     "/api/mcp",
   ];
