@@ -12,6 +12,9 @@ const nextConfig: NextConfig = {
     "@modelcontextprotocol/server",
     "@modelcontextprotocol/sdk",
   ],
+  experimental: {
+    agentUpgrade: "security",
+  },
 };
 
 if (!isStart) {
